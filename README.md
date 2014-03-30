@@ -1,4 +1,4 @@
 node-dm
 =======
 
-Dependency Injection Manager for Node.JS
+Asynchronous Dependency Injection Manager for Node.JS
