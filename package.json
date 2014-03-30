@@ -1,5 +1,5 @@
 {
-  "name":            "node-dm",
+  "name":            "dim",
   "version":         "0.0.1",
   "description":     "Asynchronous Dependency Injection Manager for Node.JS",
   "main":            "src/index.js",

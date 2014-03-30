@@ -4,7 +4,7 @@ describe('dependency injection', function() {
   var di;
 
   beforeEach(function() {
-    di = require('../src/di')();
+    di = require('../src/dim')();
   });
 
   describe('explicit api', function() {
