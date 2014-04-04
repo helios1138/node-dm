@@ -1,6 +1,6 @@
 {
   "name":            "dim",
-  "version":         "0.0.1",
+  "version":         "0.0.2",
   "description":     "Asynchronous Dependency Injection Manager for Node.JS",
   "main":            "src/index.js",
   "scripts":         {

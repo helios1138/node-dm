@@ -2,7 +2,7 @@
 
 var q = require('q');
 
-module.exports = function() {
+module.exports = function () {
   var
     container = {},
     subscribers = [];
@@ -13,12 +13,12 @@ module.exports = function() {
       newSubscribers = [],
       toCall = [];
 
-    subscribers.forEach(function(subscriber) {
+    subscribers.forEach(function (subscriber) {
       var
         missing = false,
         resolved = [];
 
-      subscriber.dependencies.forEach(function(dependency) {
+      subscriber.dependencies.forEach(function (dependency) {
         if (provided.indexOf(dependency) === -1) {
           missing = true;
         }
@@ -28,7 +28,7 @@ module.exports = function() {
       });
 
       if (!missing) {
-        toCall.push(function() {
+        toCall.push(function () {
           if (typeof subscriber.callback === 'function') {
             var callResult = subscriber.callback.apply(this, resolved);
             subscriber.deferred.resolve(callResult);
@@ -45,13 +45,13 @@ module.exports = function() {
 
     subscribers = newSubscribers;
 
-    toCall.forEach(function(callback) {
+    toCall.forEach(function (callback) {
       callback();
     });
   }
 
   return {
-    provide: function(name, dependency) {
+    provide: function (name, dependency) {
       if (container[name]) {
         throw new Error('Resource "' + name + '" has already been provided');
       }
@@ -61,7 +61,7 @@ module.exports = function() {
       resolveDependencies();
     },
 
-    depend: function() {
+    depend: function () {
       var
         args = Array.prototype.slice.call(arguments),
         deferred = q.defer(),
@@ -90,27 +90,42 @@ module.exports = function() {
       return deferred.promise;
     },
 
-    get: function(dependencyName) {
+    get: function (dependencyName) {
       var deferred = q.defer();
 
-      this.depend(dependencyName, function(dependency) {
+      this.depend(dependencyName, function (dependency) {
         deferred.resolve(dependency);
       });
 
       return deferred.promise;
     },
 
-    resource: function(name, resource) {
+    resource: function (name, resource) {
       var
         di = this,
         diResource = {
-          provide: function(resource) {
-            di.provide(name, resource);
+          dependencies: [],
+
+          provide: function (resourceCallback) {
+            di.depend(this.dependencies.concat([resourceCallback]))
+              .then(function (resource) {
+                di.provide(name, resource);
+              });
             return this;
           },
 
-          is: function(state) {
-            di.get(name).then(function(resource) {
+          depend: function () {
+            if (Array.isArray(arguments[0])) {
+              this.dependencies = arguments[0];
+            }
+            else {
+              this.dependencies = Array.prototype.slice.call(arguments);
+            }
+            return this;
+          },
+
+          setState: function (state) {
+            di.get(name).then(function (resource) {
               di.provide(name + ':' + state, resource);
             });
             return this;
@@ -119,7 +134,7 @@ module.exports = function() {
 
       if (resource !== undefined) {
         di.depend(resource)
-          .then(function(result) {
+          .then(function (result) {
             di.provide(name, result);
           });
       }

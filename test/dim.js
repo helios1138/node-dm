@@ -1,104 +1,104 @@
 'use strict';
 
-describe('dependency injection', function() {
-  var di;
+describe('dependency injection', function () {
+  var dim;
 
-  beforeEach(function() {
-    di = require('../src/dim')();
+  beforeEach(function () {
+    dim = require('../src/dim')();
   });
 
-  describe('explicit api', function() {
-    it('allows to describe a single dependency and provide it', function(done) {
-      di.depend(
+  describe('explicit api', function () {
+    it('allows to describe a single dependency and provide it', function (done) {
+      dim.depend(
         'depA',
 
-        function(depA) {
+        function (depA) {
           depA.should.equal('A');
           done();
         }
       );
 
-      di.provide('depA', 'A');
+      dim.provide('depA', 'A');
     });
 
-    it('allows to depend on multiple dependencies', function(done) {
-      di.depend(
+    it('allows to depend on multiple dependencies', function (done) {
+      dim.depend(
         'depA',
         'depB',
 
-        function(depA, depB) {
+        function (depA, depB) {
           depA.should.equal('A');
           depB.should.equal('B');
           done();
         }
       );
 
-      di.provide('depA', 'A');
-      di.provide('depB', 'B');
+      dim.provide('depA', 'A');
+      dim.provide('depB', 'B');
     });
 
-    it('works regardless of the order in which dependencies are provided', function(done) {
+    it('works regardless of the order in which dependencies are provided', function (done) {
 
-      di.provide('depB', 'B');
+      dim.provide('depB', 'B');
 
-      di.depend(
+      dim.depend(
         'depA',
         'depB',
 
-        function(depA, depB) {
+        function (depA, depB) {
           depA.should.equal('A');
           depB.should.equal('B');
           done();
         }
       );
 
-      di.provide('depA', 'A');
+      dim.provide('depA', 'A');
     });
 
-    it('works asynchronously', function(done) {
-      di.depend(
+    it('works asynchronously', function (done) {
+      dim.depend(
         'depA',
         'depB',
 
-        function(depA, depB) {
+        function (depA, depB) {
           depA.should.equal('A');
           depB.should.equal('B');
           done();
         }
       );
 
-      setTimeout(function() {
-        di.provide('depA', 'A');
+      setTimeout(function () {
+        dim.provide('depA', 'A');
       }, 500);
-      setTimeout(function() {
-        di.provide('depB', 'B');
+      setTimeout(function () {
+        dim.provide('depB', 'B');
       }, 1000);
     });
   });
 
-  describe('resource api', function() {
-    it('allows to describe resources that can change their states', function(done) {
+  describe('resource api', function () {
+    it('allows to describe resources that can change their states', function (done) {
       var
-        diResourceA = di.resource('resourceA'),
+        diResourceA = dim.resource('resourceA'),
         resourceA = {state: null},
         results = [];
 
-      diResourceA.provide(resourceA).is('initial');
+      diResourceA.provide(function () {return resourceA;}).setState('initial');
 
-      setTimeout(function() {
+      setTimeout(function () {
         resourceA.state = 'started';
-        diResourceA.is('started');
+        diResourceA.setState('started');
       }, 500);
 
-      setTimeout(function() {
+      setTimeout(function () {
         resourceA.state = 'finished';
-        diResourceA.is('finished');
+        diResourceA.setState('finished');
       }, 1000);
 
-      di.depend(
+      dim.depend(
         'resourceA',
 
-        function(resourceA) {
+        function (resourceA) {
           try {
             resourceA.should.have.property('state', null);
           }
@@ -109,10 +109,10 @@ describe('dependency injection', function() {
         }
       );
 
-      di.depend(
+      dim.depend(
         'resourceA:initial',
 
-        function(resourceA) {
+        function (resourceA) {
           try {
             resourceA.should.have.property('state', null);
           }
@@ -123,10 +123,10 @@ describe('dependency injection', function() {
         }
       );
 
-      di.depend(
+      dim.depend(
         'resourceA:started',
 
-        function(resourceA) {
+        function (resourceA) {
           try {
             resourceA.should.have.property('state', 'started');
           }
@@ -137,10 +137,10 @@ describe('dependency injection', function() {
         }
       );
 
-      di.depend(
+      dim.depend(
         'resourceA:finished',
 
-        function(resourceA) {
+        function (resourceA) {
           try {
             resourceA.should.have.property('state', 'finished');
           }
@@ -164,15 +164,15 @@ describe('dependency injection', function() {
       }
     });
 
-    it('allows to created resources that can have dependencies', function(done) {
-      di.resource('resourceA', function() {
+    it('allows to created resources that can have dependencies', function (done) {
+      dim.resource('resourceA', function () {
         return 'A';
       });
 
-      di.resource('resourceB', [
+      dim.resource('resourceB', [
         'resourceA',
 
-        function(resourceA) {
+        function (resourceA) {
           try {
             resourceA.should.equal('A');
           }
@@ -184,11 +184,11 @@ describe('dependency injection', function() {
         }
       ]);
 
-      di.resource('resourceC', [
+      dim.resource('resourceC', [
         'resourceA',
         'resourceB',
 
-        function(resourceA, resourceB) {
+        function (resourceA, resourceB) {
           try {
             resourceA.should.equal('A');
             resourceB.should.equal('B');
@@ -201,16 +201,16 @@ describe('dependency injection', function() {
       ]);
     });
 
-    it('allows resources to be created asynchronously', function(done) {
-      di.resource('resourceA', function() {
+    it('allows resources to be created asynchronously', function (done) {
+      dim.resource('resourceA', function () {
         return 'A';
       });
 
-      setTimeout(function() {
-        var diResourceB = di.resource('resourceB', [
+      setTimeout(function () {
+        var diResourceB = dim.resource('resourceB', [
           'resourceA',
 
-          function(resourceA) {
+          function (resourceA) {
             try {
               resourceA.should.equal('A');
             }
@@ -222,9 +222,9 @@ describe('dependency injection', function() {
               ready: false
             };
 
-            setTimeout(function() {
+            setTimeout(function () {
               obj.ready = true;
-              diResourceB.is('ready');
+              diResourceB.setState('ready');
             }, 500);
 
             return obj;
@@ -232,11 +232,11 @@ describe('dependency injection', function() {
         ]);
       }, 500);
 
-      di.resource('resourceC', [
+      dim.resource('resourceC', [
         'resourceA',
         'resourceB',
 
-        function(resourceA, resourceB) {
+        function (resourceA, resourceB) {
           try {
             resourceA.should.equal('A');
             resourceB.should.have.property('ready', false);
@@ -247,11 +247,11 @@ describe('dependency injection', function() {
         }
       ]);
 
-      di.resource('resourceD', [
+      dim.resource('resourceD', [
         'resourceA',
         'resourceB:ready',
 
-        function(resourceA, resourceB) {
+        function (resourceA, resourceB) {
           try {
             resourceA.should.equal('A');
             resourceB.should.have.property('ready', true);
@@ -263,18 +263,38 @@ describe('dependency injection', function() {
         }
       ]);
     });
+
+    it('should allow to separate depend and provide calls', function (done) {
+      dim.provide('A', {name: 'A'});
+
+      dim.resource('B')
+        .depend('A')
+        .provide(function (A) {
+          return {name: A.name + 'B'};
+        });
+
+      dim.depend('B', function (B) {
+        try {
+          B.name.should.equal('AB');
+          done();
+        }
+        catch(e) {
+          done(e);
+        }
+      });
+    });
   });
 
-  describe('promise api', function() {
-    it('allows to use promises that will be resolved with an array of dependencies', function(done) {
-      di.provide('some', 13);
+  describe('promise api', function () {
+    it('allows to use promises that will be resolved with an array of dependencies', function (done) {
+      dim.provide('some', 13);
 
-      setTimeout(function() {
-        di.provide('other', 14);
+      setTimeout(function () {
+        dim.provide('other', 14);
       }, 500);
 
-      di.depend('some', 'other')
-        .then(function(deps) {
+      dim.depend('some', 'other')
+        .then(function (deps) {
           try {
             deps.should.have.length(2);
             deps[0].should.equal(13);
@@ -287,13 +307,13 @@ describe('dependency injection', function() {
         });
     });
 
-    it('allows to get a single dependency using promises', function(done) {
-      setTimeout(function() {
-        di.provide('some', 15);
+    it('allows to get a single dependency using promises', function (done) {
+      setTimeout(function () {
+        dim.provide('some', 15);
       }, 500);
 
-      di.get('some')
-        .then(function(some) {
+      dim.get('some')
+        .then(function (some) {
           try {
             some.should.equal(15);
             done();
