@@ -1,3 +1,3 @@
 'use strict';
 
-module.exports = require('./dim')();
+module.exports = new require('./dm');
