@@ -1,3 +1,3 @@
 'use strict';
 
-module.exports = new require('./dm');
+module.exports = new require('./dm')();
