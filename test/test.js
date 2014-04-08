@@ -215,34 +215,5 @@ describe('dependency injection', function () {
 
       return result;
     });
-
-    /*it('', function (done) {
-      var some = {
-        value: 1
-      };
-
-      dm.resource('some')
-        .provide(some);
-
-      setTimeout(function () {
-        some.value = 2;
-
-        dm.resource('some')
-          .setState('new');
-      }, 50);
-
-      setTimeout(function () {
-        some.value = 3;
-
-        dm.resource('some')
-          .setState('old');
-      }, 100);
-
-      setTimeout(function () {
-        dm.get('some:new', function (some) {
-          console.log(some);
-        });
-      }, 150);
-    });*/
   });
 });

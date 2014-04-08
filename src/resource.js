@@ -6,12 +6,39 @@
  * @constructor
  */
 function Resource(dm, name) {
+  /**
+   * @type {DM}
+   * @private
+   */
   this._dm = dm;
 
+  /**
+   * @type {string}
+   * @private
+   */
   this._name = name;
+
+  /**
+   * @type {string|null}
+   * @private
+   */
   this._state = null;
+
+  /**
+   * @type {string[]}
+   * @private
+   */
   this._dependencies = [];
 }
+
+Resource.parseName = function (name) {
+  var parts = name.split(':');
+
+  return {
+    resource: parts[0],
+    state: parts[1] || null
+  };
+};
 
 /**
  * @param {string|string[]} dependencies
@@ -21,10 +48,18 @@ function Resource(dm, name) {
 Resource.prototype.depends = function (dependencies, callback) {
   var self = this;
 
+  if (!Array.isArray(dependencies)) {
+    dependencies = [dependencies];
+  }
+
   this._dependencies = dependencies;
+
+  this._checkForCircularDependency(this._name);
 
   if (typeof callback === 'function') {
     this._dm.get(this._dependencies, function () {
+      self._checkForOutdatedDependencyStates(dependencies);
+
       var result = callback.apply(null, Array.prototype.slice.call(arguments));
 
       if (result !== undefined) {
@@ -70,6 +105,13 @@ Resource.prototype.setState = function (state) {
 
 /**
  * @returns {string}
+ */
+Resource.prototype.getState = function () {
+  return this._state;
+};
+
+/**
+ * @returns {string}
  * @private
  */
 Resource.prototype._getFullName = function () {
@@ -80,6 +122,59 @@ Resource.prototype._getFullName = function () {
   }
 
   return name.join(':');
+};
+
+/**
+ * @param {string|string[]} dependencies
+ * @private
+ */
+Resource.prototype._checkForOutdatedDependencyStates = function (dependencies) {
+  var self = this;
+
+  if (!Array.isArray(dependencies)) {
+    dependencies = [dependencies];
+  }
+
+  dependencies.forEach(function (dependency) {
+    var
+      resourceName = Resource.parseName(dependency),
+      resource = self._dm.getResource(resourceName[0]),
+      resourceState;
+
+    if (resource !== undefined) {
+      resourceState = resource.getState();
+      if (resourceState !== resourceName.state) {
+        throw new Error('Resource "' + self._name + '" depends on "' + dependency + '" which is no longer available and replaced by "' + resourceName.resource + ':' + resourceState + '"');
+      }
+    }
+  });
+};
+
+/**
+ * @param {string} dependency
+ * @returns {boolean}
+ * @private
+ */
+Resource.prototype._checkForCircularDependency = function (dependency) {
+  var
+    self = this,
+    conflictingDependencyIdx = this._dependencies.indexOf(dependency);
+
+  if (conflictingDependencyIdx !== -1) {
+    throw new Error('Circular dependency found: "' + dependency + '" <- "' + this._name + '"');
+  }
+  else {
+    this._dependencies
+      .map(function (dependency) {
+        return self._dm.getResource(Resource.parseName(dependency).resource);
+      })
+      .filter(function (resource) {
+        return (resource !== undefined);
+      })
+      .forEach(function (resource) {
+        resource._checkForCircularDependency(dependency);
+      });
+  }
 };
 
 module.exports = Resource;

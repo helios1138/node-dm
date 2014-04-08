@@ -63,6 +63,13 @@ DM.prototype.resource = function (name) {
 };
 
 /**
+ * @param {string} name
+ */
+DM.prototype.getResource = function (name) {
+  return this._resources[name];
+};
+
+/**
  * @private
  */
 DM.prototype._resolve = function () {
