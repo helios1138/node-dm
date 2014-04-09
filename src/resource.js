@@ -87,9 +87,10 @@ Resource.prototype.provide = function (value) {
 
 /**
  * @param {string} state
+ * @param {function} [callback]
  * @returns {Resource}
  */
-Resource.prototype.setState = function (state) {
+Resource.prototype.setState = function (state, callback) {
   var self = this;
 
   setTimeout(function () {
@@ -97,6 +98,10 @@ Resource.prototype.setState = function (state) {
 
     self._dm.get(self._name, function (resource) {
       self._dm.set(self._getFullName(), resource);
+
+      if (typeof callback === 'function') {
+        callback();
+      }
     });
   }, 0);
 
