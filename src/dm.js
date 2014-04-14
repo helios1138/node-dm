@@ -52,11 +52,16 @@ DM.prototype.get = function (dependencies, callback) {
 
 /**
  * @param {string} name
+ * @param callback
  * @returns {Resource}
  */
-DM.prototype.resource = function (name) {
+DM.prototype.resource = function (name, callback) {
   if (typeof this._resources[name] === 'undefined') {
     this._resources[name] = new Resource(this, name);
+  }
+
+  if (typeof callback === 'function') {
+    this._resources[name].provide(callback());
   }
 
   return this._resources[name];
