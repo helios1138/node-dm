@@ -11,7 +11,11 @@ function DM() {
   this._dependencies = {};
   this._subscribers = [];
   this._resources = {};
+
+  this._timeout = null;
 }
+
+DM.TIMEOUT = 3000;
 
 /**
  * @param {string} name
@@ -48,6 +52,14 @@ DM.prototype.get = function (dependencies, callback) {
   this._resolve();
 
   return deferred.promise;
+};
+
+/**
+ * @param {string} dependency
+ * @returns {boolean}
+ */
+DM.prototype.isResolved = function (dependency) {
+  return (typeof this._dependencies[dependency] !== 'undefined');
 };
 
 /**
@@ -116,6 +128,54 @@ DM.prototype._resolve = function () {
   toCall.forEach(function (callback) {
     callback();
   });
+
+  this._delayReporting();
+};
+
+DM.prototype._delayReporting = function () {
+  if (this._timeout !== null) {
+    clearTimeout(this._timeout);
+  }
+
+  this._timeout = setTimeout(this._reportMissing.bind(this), DM.TIMEOUT);
+};
+
+DM.prototype._reportMissing = function () {
+  var
+    resource,
+    missingByResource = {},
+    missingGeneral = {},
+    key;
+
+  var checkResourceDependencies = function (resource, dependency) {
+    if (typeof this._dependencies[dependency] === 'undefined') {
+      missingByResource[resource._name] = missingByResource[resource._name] || [];
+      missingByResource[resource._name].push(dependency);
+    }
+  };
+
+  for (key in this._resources) {
+    if (this._resources.hasOwnProperty(key)) {
+      resource = this._resources[key];
+      resource._dependencies.forEach(checkResourceDependencies.bind(this, resource));
+    }
+  }
+
+  this._subscribers.forEach(function (subscriber) {
+    subscriber.dependencies.forEach(function (dependency) {
+      if (Object.keys(this._dependencies).indexOf(dependency) === -1) {
+        missingGeneral[dependency] = true;
+      }
+    }, this);
+  }, this);
+
+  for (key in missingByResource) {
+    if (missingByResource.hasOwnProperty(key)) {
+      console.log('Resource "' + key + '" still waiting for [ ' + missingByResource[key].join(', ') + ' ]');
+    }
+  }
+
+  console.log('Final list of missing dependencies: [ ' + Object.keys(missingGeneral).join(', ') + ' ]');
 };
 
 module.exports = DM;
