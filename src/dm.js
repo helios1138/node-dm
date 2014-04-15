@@ -175,7 +175,9 @@ DM.prototype._reportMissing = function () {
     }
   }
 
-  console.log('Final list of missing dependencies: [ ' + Object.keys(missingGeneral).join(', ') + ' ]');
+  if (Object.keys(missingGeneral).length > 0) {
+    console.log('Final list of missing dependencies: [ ' + Object.keys(missingGeneral).join(', ') + ' ]');
+  }
 };
 
 module.exports = DM;
