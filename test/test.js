@@ -35,7 +35,7 @@ describe('dependency injection', function () {
 
       return dm
         .get('a')
-        .spread(function (a) {
+        .then(function (a) {
           a.should.equal(1);
         });
     });
@@ -43,7 +43,7 @@ describe('dependency injection', function () {
     it('one dependency, reversed order, promise', function () {
       var result = dm
         .get('a')
-        .spread(function (a) {
+        .then(function (a) {
           a.should.equal(1);
         });
 
@@ -91,7 +91,7 @@ describe('dependency injection', function () {
       dm.resource('a').provide(1);
 
       return dm.get('a')
-        .spread(function (a) {
+        .then(function (a) {
           a.should.equal(1);
         });
     });
@@ -105,7 +105,7 @@ describe('dependency injection', function () {
       dm.set('b', 2);
 
       return dm.get('c')
-        .spread(function (c) {
+        .then(function (c) {
           c.should.equal(3);
         });
     });
@@ -122,7 +122,7 @@ describe('dependency injection', function () {
       dm.set('b', 2);
 
       return dm.get('c')
-        .spread(function (a) {
+        .then(function (a) {
           a.should.equal(3);
         });
     });
@@ -140,7 +140,7 @@ describe('dependency injection', function () {
       dm.set('b', 'string');
 
       return dm.get('c')
-        .spread(function (c) {
+        .then(function (c) {
           c.should.equal('some string');
         });
     });
@@ -161,7 +161,7 @@ describe('dependency injection', function () {
       dm.set('b', 'string');
 
       return dm.get('c')
-        .spread(function (c) {
+        .then(function (c) {
           c.should.equal('some string');
         });
     });

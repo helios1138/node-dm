@@ -38,15 +38,18 @@ DM.prototype.set = function (name, value) {
  */
 DM.prototype.get = function (dependencies, callback) {
   var deferred = q.defer();
+  var requestedSingle = false;
 
   if (!Array.isArray(dependencies)) {
     dependencies = [dependencies];
+    requestedSingle = true;
   }
 
   this._subscribers.push({
-    dependencies: dependencies,
-    callback:     callback,
-    deferred:     deferred
+    dependencies:    dependencies,
+    callback:        callback,
+    deferred:        deferred,
+    requestedSingle: requestedSingle
   });
 
   this._resolve();
@@ -115,7 +118,12 @@ DM.prototype._resolve = function () {
         if (subscriber.callback) {
           subscriber.callback.apply(null, dependencies);
         }
-        subscriber.deferred.resolve(dependencies);
+        if (subscriber.requestedSingle) {
+          subscriber.deferred.resolve(dependencies[0]);
+        }
+        else {
+          subscriber.deferred.resolve(dependencies);
+        }
       });
     }
     else {
