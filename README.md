@@ -1,3 +1,18 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [node-dm](#node-dm)
+	- [Case study](#case-study)
+- [Examples](#examples)
+	- [Promises](#promises)
+	- [Multiple dependencies](#multiple-dependencies)
+- [Resources (the preffered API)](#resources-the-preffered-api)
+	- [Resource State](#resource-state)
+- [Other API](#other-api)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 node-dm
 =======
 
