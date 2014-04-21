@@ -1,33 +1,33 @@
 {
-  "name":            "node-dm",
-  "version":         "0.0.10",
-  "description":     "Asynchronous Dependency Injection Manager for Node.JS",
-  "main":            "src/index.js",
-  "scripts":         {
+  "name": "node-dm",
+  "version": "0.1.0",
+  "description": "Asynchronous Dependency Injection Manager for Node.JS",
+  "main": "src/index.js",
+  "scripts": {
     "test": "mocha --require should test/*"
   },
-  "repository":      {
+  "repository": {
     "type": "git",
-    "url":  "https://github.com/helios1138/node-dm.git"
+    "url": "https://github.com/helios1138/node-dm.git"
   },
-  "author":          "Helios <revan.den@gmail.com>",
-  "license":         "MIT",
-  "keywords":        [
+  "author": "Helios <revan.den@gmail.com>",
+  "license": "MIT",
+  "keywords": [
     "di",
     "dependency",
     "injection",
     "injector",
     "asynchronous"
   ],
-  "bugs":            {
+  "bugs": {
     "url": "https://github.com/helios1138/node-dm/issues"
   },
-  "homepage":        "https://github.com/helios1138/node-dm",
-  "dependencies":    {
+  "homepage": "https://github.com/helios1138/node-dm",
+  "dependencies": {
     "q": "^1.0.1"
   },
   "devDependencies": {
-    "mocha":  "^1.18.2",
+    "mocha": "^1.18.2",
     "should": "^3.2.0"
   }
 }
