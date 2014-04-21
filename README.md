@@ -1,13 +1,13 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
 
 - [node-dm](#node-dm)
 	- [Case study](#case-study)
 - [Examples](#examples)
 	- [Promises](#promises)
 	- [Multiple dependencies](#multiple-dependencies)
-- [Resources (the preffered API)](#resources-the-preffered-api)
+- [Resources (the preferred API)](#resources-the-preferred-api)
 	- [Resource State](#resource-state)
 - [Other API](#other-api)
 
@@ -26,7 +26,7 @@ Case study
 
 Your application consists of modules which depend on each other and usually initialize asynchronously.
 For example a module *'restful-api-server'* requires another module *'database-provider'* to establish a connection
-first of all, and only then allow the *'restful-api-server'* to open a listening port.
+first, and only then allow the *'restful-api-server'* to open a listening port.
 This is how `node-dm` solves the issue using callback style API.
 
 First of all:
@@ -57,7 +57,7 @@ As the result no matter when the connection happened the server won't be started
 Examples
 ========
 
-There are multiple other ways to provide and consume dependecies.
+There are other ways to provide and resolve dependencies.
 
 Promises
 --------
@@ -82,7 +82,7 @@ dm.get(['dependency1', 'dependency2'], function (dependency1, dependency2) {
 });
 ```
 
-Promise style:
+Promise style (if you `get` promises via array, you'll receive them via array):
 
 ```JS
 dm.get(['dependency1', 'dependency2'])
@@ -100,7 +100,7 @@ dm.get(['dependency1', 'dependency2'])
   });
 ```
 
-Resources (the preffered API)
+Resources (the preferred API)
 =============================
 
 The real power of `node-dm` comes from *Resources*. See it in action.
@@ -118,12 +118,32 @@ resource.provide(myCoolResourceObject);
 
 Effectively the lines above equal to:
 ```JS
-dm.set('myResouce', myCoolResourceObject);
+dm.set('myResource', myCoolResourceObject);
 ```
 
-**But what's the point?** There are two:
-* Each resouce can have `state` (like *connecting* and *connected*).
+A resource can depend on other resources
+```JS
+dm.resource('resourceA')
+  .depends(['resourceB', 'resourceC'], function(resourceB, resourceC){
+    // this will be executed once B and C are provided
+    // then you can provide A:
+    dm.resource('resourceA').provide({ some: 'object' });
+  })
+```
+
+Using `depends()` call you can also provide a resource simply by returning it
+```JS
+dm.resource('resourceA')
+  .depends(['resourceB', 'resourceC'], function(resourceB, resourceC){
+    return { some: 'object' }
+  })
+```
+
+**But what's the point?**:
+* Each resource can have `state` (like *connecting* and *connected*).
 * It can `depend` on other resources and their states (like *database:connected*).
+* DM keeps track of resources and their dependencies and makes sure there will be no circular dependencies
+* It also will report which resources didn't get their dependencies for debugging purposes
 
 Resource State
 -----
@@ -155,24 +175,26 @@ As you can see the `server` resource depends on the `config` resource and the co
 
 Please note, everything is asynchronous as usual.
 
-Please also note that the `server` resource is the `epxress` application object and can be `depend`ent on.
+Please also note that the `server` resource is the `express` application object and can be `depend`ent on.
+
+Also mind that exception will be thrown if you will try to define a resource that depends on another resource in a state, that it had in the past.
 
 Other API
 =========
 
-You can always check if a dependency was already providen:
+You can always check if a dependency was already provided:
 
 ```JS
 dm.isResolved('dependency');
 ```
 
-You can get a state of a resouce:
+You can get a state of a resource:
 
 ```JS
 dm.resource('resourceName').getState();
 ```
 
-You can get check if a resource was already declared (**do not confuse with providen**).
+You can get check if a resource was already declared (**do not confuse with provided**).
 But why you would need that?
 
 ```JS
