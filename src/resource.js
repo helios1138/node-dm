@@ -1,5 +1,7 @@
 'use strict';
 
+var q = require('q');
+
 /**
  * @param {DM} dm
  * @param {string} name
@@ -29,6 +31,12 @@ function Resource(dm, name) {
    * @private
    */
   this._dependencies = [];
+
+  /**
+   * @type {{ string: Promise }}
+   * @private
+   */
+  this._delays = {};
 }
 
 Resource.parseName = function (name) {
@@ -93,14 +101,26 @@ Resource.prototype.provide = function (value) {
 Resource.prototype.setState = function (state, callback) {
   var self = this;
 
-  setTimeout(function () {
+  function setDependency(resource) {
     self._state = state;
 
-    self._dm.get(self._name, function (resource) {
+    return function () {
       self._dm.set(self._getFullName(), resource);
 
       if (typeof callback === 'function') {
         callback();
+      }
+    };
+  }
+
+  setTimeout(function () {
+
+    self._dm.get(self._name, function (resource) {
+      if (typeof self._delays[self.getState()] !== 'undefined' && self._delays[self.getState()].length > 0) {
+        q.all(self._delays[self.getState()]).then(setDependency(resource));
+      }
+      else {
+        setDependency(resource)();
       }
     });
   }, 0);
@@ -113,6 +133,22 @@ Resource.prototype.setState = function (state, callback) {
  */
 Resource.prototype.getState = function () {
   return this._state;
+};
+
+/**
+ * @param {string} state
+ * @returns {function}
+ */
+Resource.prototype.delay = function (state) {
+  var deferred = q.defer();
+
+  if (typeof this._delays[state] === 'undefined') {
+    this._delays[state] = [];
+  }
+
+  this._delays[state].push(deferred.promise);
+
+  return deferred.resolve;
 };
 
 /**

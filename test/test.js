@@ -215,5 +215,41 @@ describe('dependency injection', function () {
 
       return result;
     });
+
+    it('allows to delay resource states', function (done) {
+      var some = {
+        counter: 0
+      };
+
+      dm.resource('some')
+        .provide(some)
+        .setState('initializing')
+        .setState('initialized');
+
+      dm.resource('other1')
+        .depends('some:initializing', function (some) {
+          some.counter++;
+        });
+
+      var stopDelay = dm.resource('some').delay('initializing');
+      dm.resource('other2')
+        .depends('some:initializing', function (some) {
+          setTimeout(function () {
+            some.counter++;
+            stopDelay();
+          }, 100);
+        });
+
+      dm.resource('another')
+        .depends('some:initialized', function (some) {
+          try {
+            some.counter.should.equal(2);
+            done();
+          }
+          catch (e) {
+            done(e);
+          }
+        });
+    });
   });
 });
