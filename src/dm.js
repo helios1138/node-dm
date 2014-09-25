@@ -148,6 +148,8 @@ DM.prototype._delayReporting = function () {
   this._timeout = setTimeout(this._reportMissing.bind(this), DM.TIMEOUT);
 };
 
+DM.prototype._printLog = console.log;
+
 DM.prototype._reportMissing = function () {
   var
     resource,
@@ -177,14 +179,27 @@ DM.prototype._reportMissing = function () {
     }, this);
   }, this);
 
+  var causeOfTheProblem = [];
   for (key in missingByResource) {
     if (missingByResource.hasOwnProperty(key)) {
-      console.log('Resource "' + key + '" still waiting for [ ' + missingByResource[key].join(', ') + ' ]');
+
+      // Trying to find the root of the problem.
+      missingByResource[key].forEach(function (dependant) {
+        if (typeof missingByResource[dependant] === 'undefined') {
+          causeOfTheProblem.push(dependant);
+        }
+      });
+
+      this._printLog('Resource "' + key + '" still waiting for [ ' + missingByResource[key].join(', ') + ' ]');
     }
   }
 
+  if (causeOfTheProblem.length) {
+    this._printLog('Missing root dependencies: ' + causeOfTheProblem.join(', '));
+  }
+
   if (Object.keys(missingGeneral).length > 0) {
-    console.log('Final list of missing dependencies: [ ' + Object.keys(missingGeneral).join(', ') + ' ]');
+    this._printLog('Final list of missing dependencies: [ ' + Object.keys(missingGeneral).join(', ') + ' ]');
   }
 };
 
