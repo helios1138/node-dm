@@ -77,6 +77,39 @@ describe('dependency injection', function () {
           b.should.equal(2);
         });
     });
+
+    it('multiple dependencies as object', function () {
+      dm.set('a', 1);
+
+      var result = dm.get({ a: true, b: true });
+
+      dm.set('b', 2);
+
+      return result
+        .then(function (obj) {
+          obj.a.should.equal(1);
+          obj.b.should.equal(2);
+        });
+    });
+
+    it('multiple dependencies with states as object', function () {
+      dm.set('a', 1);
+
+      var result = dm.get({ a: 'initialized', b: true });
+
+      dm.set('b', 2);
+      dm.resource('a').setState('initialized');
+
+      return result
+        .then(function (obj) {
+          obj.a.should.equal(1);
+          obj.b.should.equal(2);
+        });
+    });
+
+    it('must thrown on wrong dependency parameter type', function () {
+      (function () { dm.get(function (){}) }).should.throw(/argument/);
+    });
   });
 
   describe('resource api', function () {
