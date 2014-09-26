@@ -167,6 +167,46 @@ describe('dependency injection', function () {
     });
   });
 
+  describe('report missing', function () {
+    var timeoutSave;
+    before(function () {
+      timeoutSave = DM.TIMEOUT;
+      DM.TIMEOUT = 1;
+    });
+
+    after(function () {
+      DM.TIMEOUT = timeoutSave;
+    });
+
+    it('must report missing', function (done) {
+      dm._printLog = function (log) {
+        if (log.indexOf('Main') === 0) {
+          log.should.include('IAmMissing');
+        }
+        if (log.indexOf('Final') === 0) {
+          log.should.include('[ IAmMissing ]');
+          done();
+        }
+      };
+
+      dm.resource('IMissYou').depends('IAmMissing').provide({});
+    });
+
+    it('must report all root missing', function (done) {
+      dm._printLog = function (log) {
+        if (log.indexOf('Main') === 0) {
+          log.should.include('IAmMissing');
+          log.should.include('IAmMissingToo');
+          log.should.not.include('IMissYou');
+          done();
+        }
+      };
+
+      dm.resource('IMissYou').depends('IAmMissing').provide({});
+      dm.resource('IMissYou').depends('IAmMissingToo').provide({});
+    });
+  });
+
   describe('resource states', function () {
     it('allows resources to have different states', function () {
       var a = {
