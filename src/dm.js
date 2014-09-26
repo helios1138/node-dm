@@ -46,9 +46,9 @@ DM.prototype.get = function (dependencies, callback) {
   }
 
   this._subscribers.push({
-    dependencies:    dependencies,
-    callback:        callback,
-    deferred:        deferred,
+    dependencies: dependencies,
+    callback: callback,
+    deferred: deferred,
     requestedSingle: requestedSingle
   });
 
@@ -155,10 +155,12 @@ DM.prototype._reportMissing = function () {
     resource,
     missingByResource = {},
     missingGeneral = {},
-    key;
+    key,
+    isResolved = this.isResolved.bind(this),
+    causeOfTheProblem = [];
 
-  var checkResourceDependencies = function (resource, dependency) {
-    if (typeof this._dependencies[dependency] === 'undefined') {
+  var checkResourceDependencies = function checkResourceDependencies(resource, dependency) {
+    if (!isResolved(dependency)) {
       missingByResource[resource._name] = missingByResource[resource._name] || [];
       missingByResource[resource._name].push(dependency);
     }
@@ -171,6 +173,17 @@ DM.prototype._reportMissing = function () {
     }
   }
 
+  // Trying to find the main problematic dependency.
+  for (key in missingByResource) {
+    if (missingByResource.hasOwnProperty(key)) {
+      missingByResource[key].forEach(function (dependant) {
+        if (typeof missingByResource[dependant] === 'undefined') {
+          causeOfTheProblem.push(dependant);
+        }
+      });
+    }
+  }
+
   this._subscribers.forEach(function (subscriber) {
     subscriber.dependencies.forEach(function (dependency) {
       if (Object.keys(this._dependencies).indexOf(dependency) === -1) {
@@ -179,23 +192,8 @@ DM.prototype._reportMissing = function () {
     }, this);
   }, this);
 
-  var causeOfTheProblem = [];
-  for (key in missingByResource) {
-    if (missingByResource.hasOwnProperty(key)) {
-
-      // Trying to find the root of the problem.
-      missingByResource[key].forEach(function (dependant) {
-        if (typeof missingByResource[dependant] === 'undefined') {
-          causeOfTheProblem.push(dependant);
-        }
-      });
-
-      this._printLog('Resource "' + key + '" still waiting for [ ' + missingByResource[key].join(', ') + ' ]');
-    }
-  }
-
   if (causeOfTheProblem.length) {
-    this._printLog('Missing root dependencies: ' + causeOfTheProblem.join(', '));
+    this._printLog('Main dependency missing: ' + causeOfTheProblem.join(', '));
   }
 
   if (Object.keys(missingGeneral).length > 0) {

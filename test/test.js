@@ -180,11 +180,7 @@ describe('dependency injection', function () {
 
     it('must report missing', function (done) {
       dm._printLog = function (log) {
-        if (log.indexOf('Resource') === 0) {
-          log.should.include('IMissYou');
-          log.should.include('IAmMissing');
-        }
-        if (log.indexOf('Missing') === 0) {
+        if (log.indexOf('Main') === 0) {
           log.should.include('IAmMissing');
         }
         if (log.indexOf('Final') === 0) {
@@ -198,9 +194,10 @@ describe('dependency injection', function () {
 
     it('must report all root missing', function (done) {
       dm._printLog = function (log) {
-        if (log.indexOf('Missing') === 0) {
+        if (log.indexOf('Main') === 0) {
           log.should.include('IAmMissing');
           log.should.include('IAmMissingToo');
+          log.should.not.include('IMissYou');
           done();
         }
       };
