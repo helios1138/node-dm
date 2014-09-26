@@ -74,15 +74,25 @@ dm.get('resource-name')
 Multiple dependencies
 ---------------------
 
-Callback style:
+### Callback style
+
+If you ask dependencies via array, you'll receive them via array.
 
 ```JS
-dm.get(['dependency1', 'dependency2'], function (dependency1, dependency2) {
-  // here you go
-});
+dm.get(['dependency1', 'dependency2', 'dependency3'], function (dependency1, dependency2, dependency3) {
+    // dependency1, and dependency2, and 'dependency3 are defined 
+  });
 ```
 
-Promise style (if you `get` promises via array, you'll receive them via array):
+If you ask dependencies via object, you'll receive them via object.
+
+```JS
+dm.get({'dependency1': true, 'dependency2': 'someState', 'dependency3:someState': true }, function (obj) {
+    // obj.dependency1, and obj.dependency2, and obj.dependency3 are defined
+  });
+```
+
+### Promise style
 
 ```JS
 dm.get(['dependency1', 'dependency2'])
@@ -91,7 +101,16 @@ dm.get(['dependency1', 'dependency2'])
   });
 ```
 
-Better promise style (using the `spread` function):
+Better promise style:
+
+```JS
+dm.get({'dependency1': true, 'dependency2': 'someState', 'dependency3:someState': true })
+  .then(function (obj) {
+    // obj.dependency1, and obj.dependency2, and obj.dependency3 are defined 
+  });
+```
+
+Good promise style (using the `spread` function):
 
 ```JS
 dm.get(['dependency1', 'dependency2'])
