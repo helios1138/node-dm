@@ -2,7 +2,8 @@
 
 var
   q = require('q'),
-  Resource = require('./resource');
+  Resource = require('./resource'),
+  createDependencyStrategy = require('./dependency-strategy');
 
 /**
  * @constructor
@@ -40,7 +41,7 @@ DM.prototype.get = function (dependencies, callback) {
   var deferred = q.defer();
 
   this._subscribers.push({
-    dependencyStrategy: this._getDependencyStrategy(dependencies),
+    dependencyStrategy: createDependencyStrategy(dependencies),
     callback: callback,
     deferred: deferred
   });
@@ -111,13 +112,13 @@ DM.prototype._resolve = function () {
       remainingSubscribers.push(subscriber);
     }
     else {
-      var returnedObject = subscriber.dependencyStrategy.buildReturningObject(self._dependencies);
+      var returnedValue = subscriber.dependencyStrategy.buildReturningValue(self._dependencies);
 
       toCall.push(function () {
         if (subscriber.callback) {
-          subscriber.callback.apply(null, Array.isArray(returnedObject) ? returnedObject : [returnedObject]);
+          subscriber.callback.apply(null, Array.isArray(returnedValue) ? returnedValue : [returnedValue]);
         }
-        subscriber.deferred.resolve(returnedObject);
+        subscriber.deferred.resolve(returnedValue);
       });
     }
   });
@@ -191,56 +192,5 @@ DM.prototype._reportMissing = function () {
     this._printLog('Final list of missing dependencies: [ ' + Object.keys(missingGeneral).join(', ') + ' ]');
   }
 };
-
-DM.prototype._getDependencyStrategy = function (dependencies) {
-  function ArrayStrategy(dependencies) {
-    this.requiredDependencies = dependencies;
-
-    this.buildReturningObject = function buildReturningObject(allDependencies) {
-      return this.requiredDependencies.map(function (dependencyName) {
-        return allDependencies[dependencyName];
-      });
-    };
-  }
-
-  function StringStrategy(dependencies) {
-    this.requiredDependencies = [dependencies];
-
-    this.buildReturningObject = function buildReturningObject(allDependencies) {
-      return allDependencies[this.requiredDependencies[0]];
-    };
-  }
-
-  function ObjectStrategy(dependencies) {
-    this.requiredDependencies = [];
-    for (var key in dependencies) {
-      if (dependencies.hasOwnProperty(key)) {
-        var value = dependencies[key];
-        this.requiredDependencies.push(key + (typeof value === 'string' ? (':' + value) : ''));
-      }
-    }
-
-    this.buildReturningObject = function buildReturningObject(allDependencies) {
-      var returnedObject = {};
-      this.requiredDependencies.forEach(function (dependencyName) {
-        returnedObject[Resource.parseName(dependencyName).resource] = allDependencies[dependencyName];
-      });
-      return returnedObject;
-    };
-  }
-
-  if (Array.isArray(dependencies)) {
-    return new ArrayStrategy(dependencies);
-  }
-  else if (typeof dependencies === 'string' || dependencies instanceof String) {
-    return new StringStrategy(dependencies);
-  }
-  else if (typeof dependencies === 'object') {
-    return new ObjectStrategy(dependencies);
-  }
-  else {
-    throw new Error('Incorrect type of dependencies argument.')
-  }
-}
 
 module.exports = DM;
