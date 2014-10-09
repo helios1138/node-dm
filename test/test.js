@@ -238,6 +238,16 @@ describe('dependency injection', function () {
       dm.resource('IMissYou').depends('IAmMissing').provide({});
       dm.resource('IMissYou').depends('IAmMissingToo').provide({});
     });
+
+    it('must not report if all good', function (done) {
+      dm._printLog = function () {
+        done('No printing should have taken place.');
+      };
+
+      dm.resource('dep1').depends('dep2').provide({});
+      dm.resource('dep2').provide({});
+      setTimeout(function () { done(); }, 50);
+    });
   });
 
   describe('resource states', function () {

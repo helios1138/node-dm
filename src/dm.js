@@ -143,6 +143,17 @@ DM.prototype._delayReporting = function () {
 DM.prototype._printLog = console.log;
 
 DM.prototype._reportMissing = function () {
+  function isEmpty(obj) {
+    if (obj == null) return true;
+    if (obj.length > 0) return false;
+    if (obj.length === 0) return true;
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) return false;
+    }
+
+    return true;
+  }
+
   var
     resource,
     missingByResource = {},
@@ -184,11 +195,11 @@ DM.prototype._reportMissing = function () {
     });
   });
 
-  if (causeOfTheProblem !== {}) {
-    this._printLog('Main dependency missing: ' + Object.keys(missingGeneral).join(', '));
+  if (!isEmpty(causeOfTheProblem)) {
+    this._printLog('Main dependency missing: ' + Object.keys(causeOfTheProblem).join(', '));
   }
 
-  if (missingGeneral !== {}) {
+  if (!isEmpty(missingGeneral)) {
     this._printLog('Final list of missing dependencies: [ ' + Object.keys(missingGeneral).join(', ') + ' ]');
   }
 };
