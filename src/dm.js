@@ -106,19 +106,32 @@ DM.prototype._resolve = function () {
     remainingSubscribers = [],
     toCall = [];
 
+  // Loop through all non resolved subscribers.
   this._subscribers.forEach(function (subscriber) {
-    if (!self._areAllResolved(subscriber.dependencyStrategy.requiredDependencies)) {
-      remainingSubscribers.push(subscriber);
-    }
-    else {
-      var returnedValue = subscriber.dependencyStrategy.buildReturningValue(self._dependencies);
+    var
+      isResolved = true,
+      resolvedDependencies = [];
 
+    subscriber.dependencyStrategy.requiredDependencies.forEach(function (dependencyName) {
+      if (!self.isResolved(dependencyName)) {
+        isResolved = false;
+      }
+      else {
+        resolvedDependencies.push(self._dependencies[dependencyName]);
+      }
+    });
+
+    if (isResolved) {
       toCall.push(function () {
         if (subscriber.callback) {
-          subscriber.callback.apply(null, Array.isArray(returnedValue) ? returnedValue : [returnedValue]);
+          subscriber.callback.apply(null, resolvedDependencies);
         }
-        subscriber.deferred.resolve(returnedValue);
+
+        subscriber.deferred.resolve(subscriber.dependencyStrategy.buildReturningValue(self._dependencies));
       });
+    }
+    else {
+      remainingSubscribers.push(subscriber);
     }
   });
 
