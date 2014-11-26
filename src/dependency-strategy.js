@@ -6,9 +6,14 @@ function ArrayStrategy(dependencies) {
   this.requiredDependencies = dependencies;
 
   this.buildReturningValue = function buildReturningValue(allDependencies) {
-    return this.requiredDependencies.map(function (dependencyName) {
+    var res = this.requiredDependencies.map(function (dependencyName) {
       return allDependencies[dependencyName];
     });
+    return res;
+  };
+
+  this.invokeCallback = function invokeCallback(cb, val) {
+    cb.apply(null, val);
   };
 }
 
@@ -17,6 +22,10 @@ function StringStrategy(dependencies) {
 
   this.buildReturningValue = function buildReturningValue(allDependencies) {
     return allDependencies[this.requiredDependencies[0]];
+  };
+
+  this.invokeCallback = function invokeCallback(cb, val) {
+    cb.call(null, val);
   };
 }
 
@@ -35,6 +44,10 @@ function ObjectStrategy(dependencies) {
       returnedObject[Resource.parseName(dependencyName).resource] = allDependencies[dependencyName];
     });
     return returnedObject;
+  };
+
+  this.invokeCallback = function invokeCallback(cb, val) {
+    cb.call(null, val);
   };
 }
 

@@ -66,8 +66,7 @@ DM.prototype._areAllResolved = function (dependencies) {
   // Implemented in the fastest possible way.
   var length = dependencies.length;
   for (var i = 0; i < length; i++) {
-    if (!this.isResolved(dependencies[i]))
-    {
+    if (!this.isResolved(dependencies[i])) {
       return false;
     }
   }
@@ -107,19 +106,24 @@ DM.prototype._resolve = function () {
     remainingSubscribers = [],
     toCall = [];
 
+  // Loop through all non resolved subscribers.
   this._subscribers.forEach(function (subscriber) {
-    if (!self._areAllResolved(subscriber.dependencyStrategy.requiredDependencies)) {
-      remainingSubscribers.push(subscriber);
+    var strategy = subscriber.dependencyStrategy; // This variable is a speedup hack
+    var isResolved = strategy.requiredDependencies.every(self.isResolved.bind(self));
+
+    if (isResolved) {
+      toCall.push(function () {
+        var returningValue = strategy.buildReturningValue(self._dependencies);
+        if (subscriber.callback)
+        {
+          strategy.invokeCallback(subscriber.callback, returningValue);
+        }
+
+        subscriber.deferred.resolve(returningValue);
+      });
     }
     else {
-      var returnedValue = subscriber.dependencyStrategy.buildReturningValue(self._dependencies);
-
-      toCall.push(function () {
-        if (subscriber.callback) {
-          subscriber.callback.apply(null, Array.isArray(returnedValue) ? returnedValue : [returnedValue]);
-        }
-        subscriber.deferred.resolve(returnedValue);
-      });
+      remainingSubscribers.push(subscriber);
     }
   });
 
@@ -142,39 +146,68 @@ DM.prototype._delayReporting = function () {
 
 DM.prototype._printLog = console.log;
 
-DM.prototype._reportMissing = function () {
-  var
-    resource,
-    missingByResource = {},
-    missingGeneral = {},
-    key,
-    isResolved = this.isResolved.bind(this),
-    causeOfTheProblem = {};
+/**
+ * Build an object with missing resources.
+ * @returns {{}} Object. Keys are missing resources. Values are arrays of missing deps.
+ * @private
+ */
+DM.prototype._getMissingByResource = function () {
+  var resource, key, missingByResource = {};
 
-  var checkResourceDependencies = function checkResourceDependencies(resource, dependency) {
-    if (!isResolved(dependency)) {
-      missingByResource[resource._name] = missingByResource[resource._name] || [];
-      missingByResource[resource._name].push(dependency);
+  var checkResourceDependencies = function checkResourceDependencies(resourceName, dependency) {
+    if (!this.isResolved(dependency)) {
+      missingByResource[resourceName] = missingByResource[resourceName] || [];
+      missingByResource[resourceName].push(dependency);
     }
   };
 
   for (key in this._resources) {
     if (this._resources.hasOwnProperty(key)) {
       resource = this._resources[key];
-      resource._dependencies.forEach(checkResourceDependencies.bind(this, resource));
+      resource._dependencies.forEach(checkResourceDependencies.bind(this, resource._name));
     }
   }
+
+  return missingByResource;
+};
+
+DM.prototype._getMainMissingDependencies = function () {
+  var
+    key,
+    missingByResource = this._getMissingByResource(),
+    causeOfTheProblem = {},
+    stringMessages = [];
 
   // Trying to find the main problematic dependency.
   for (key in missingByResource) {
     if (missingByResource.hasOwnProperty(key)) {
-      missingByResource[key].forEach(function (dependant) {
-        if (typeof missingByResource[dependant] === 'undefined') {
-          causeOfTheProblem[dependant] = true;
+      missingByResource[key].forEach(function (resourceAndState) {
+        resourceAndState = resourceAndState.split(':');
+        var res = resourceAndState[0];
+        var state = resourceAndState[1];
+        if (typeof missingByResource[res] === 'undefined') {
+          causeOfTheProblem[res] = state || true;
         }
       });
     }
   }
+
+  for (key in causeOfTheProblem) {
+    if (causeOfTheProblem.hasOwnProperty(key)) {
+      var str = key;
+      if (causeOfTheProblem[key] !== true) {
+        str += ':' + causeOfTheProblem[key];
+      }
+      stringMessages.push(str);
+    }
+  }
+
+  return stringMessages.join(', ');
+};
+
+DM.prototype._getGeneralMissingDependencies = function () {  var
+  missingGeneral = {},
+  isResolved = this.isResolved.bind(this);
 
   this._subscribers.forEach(function (subscriber) {
     subscriber.dependencyStrategy.requiredDependencies.forEach(function (dependency) {
@@ -184,12 +217,31 @@ DM.prototype._reportMissing = function () {
     });
   });
 
-  if (causeOfTheProblem !== {}) {
-    this._printLog('Main dependency missing: ' + Object.keys(missingGeneral).join(', '));
+  return Object.keys(missingGeneral).join(', ');
+};
+
+DM.prototype._reportMissing = function () {
+  function isEmpty(obj) {
+    if (obj == null) return true;
+    if (obj.length > 0) return false;
+    if (obj.length === 0) return true;
+    for (var key in obj) {
+      if (obj.hasOwnProperty(key)) return false;
+    }
+
+    return true;
   }
 
-  if (missingGeneral !== {}) {
-    this._printLog('Final list of missing dependencies: [ ' + Object.keys(missingGeneral).join(', ') + ' ]');
+  var
+    missingGeneral = this._getGeneralMissingDependencies(),
+    causeOfTheProblem = this._getMainMissingDependencies();
+
+  if (!isEmpty(causeOfTheProblem)) {
+    this._printLog('Main dependency missing: ' + causeOfTheProblem);
+  }
+
+  if (!isEmpty(missingGeneral)) {
+    this._printLog('Final list of missing dependencies: [ ' + missingGeneral + ' ]');
   }
 };
 

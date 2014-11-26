@@ -238,6 +238,31 @@ describe('dependency injection', function () {
       dm.resource('IMissYou').depends('IAmMissing').provide({});
       dm.resource('IMissYou').depends('IAmMissingToo').provide({});
     });
+
+    it('must not report if all good', function (done) {
+      dm._printLog = function () {
+        done('No printing should have taken place.');
+      };
+
+      dm.resource('dep1').depends('dep2').provide({});
+      dm.resource('dep2').provide({});
+      setTimeout(function () { done(); }, 50);
+    });
+
+    it('must report missing states', function (done) {
+      dm._printLog = function (log) {
+        if (log.indexOf('Main') === 0) {
+          log.should.include('IAmMissing');
+          log.should.include('initialized');
+          log.should.not.include('IMissYou');
+          done();
+        }
+      };
+
+      dm.resource('IAmMissing').provide({}).setState('initializing');
+      dm.resource('IMissYou').depends('IAmMissing:initializing').provide({});
+      dm.resource('IMissYou').depends('IAmMissing:initialized').provide({});
+    });
   });
 
   describe('resource states', function () {
