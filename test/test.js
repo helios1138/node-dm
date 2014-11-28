@@ -355,8 +355,8 @@ describe('dependency injection', function () {
     });
 
     describe('returns original source after providing them', function () {
-      // This probably should not happen.
-      // Alternatively, dependencies should not be created before until the first `invoke()` call '
+      // Either this should not happen
+      // or dependencies should not be created until the first `invoke()` call '
       throw new Error();
     });
   });
