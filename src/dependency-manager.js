@@ -13,6 +13,7 @@ DependencyManager._construct = function (constructor, args) {
   }
 
   F.prototype = constructor.prototype;
+
   return new F();
 };
 
@@ -28,23 +29,26 @@ DependencyManager.prototype.set = function (name, value) {
   }
 };
 
-DependencyManager.prototype.get = function (names, cb) {
-  if (names instanceof Array) {
-    return this.getAsArray(names, cb);
+DependencyManager.prototype.get = function (name, cb) {
+  if (typeof this._dependenices[name] === 'undefined') {
+    this._dependenices[name] = new Dependency();
   }
-  else {
-    return this.getAsObject(Object.keys(names), cb);
+
+  var promise = this._dependenices[name].getPromise();
+
+  if (typeof cb === 'function') {
+    promise.then(cb);
   }
+
+  return promise;
 };
 
 DependencyManager.prototype.getAsArray = function (names, cb) {
-  var promise = Promise.all(names.map(function (name) {
-    if (typeof this._dependenices[name] === 'undefined') {
-      this._dependenices[name] = new Dependency();
-    }
-
-    return this._dependenices[name].getPromise();
-  }, this));
+  var promise = Promise.all(
+    names.map(
+      this.get.bind(this)
+    )
+  );
 
   if (typeof cb === 'function') {
     promise.then(cb);
@@ -89,17 +93,19 @@ DependencyManager.prototype.invoke = function () {
   depends = depends || cb.$depends;
 
   if (!depends) {
-    cb.call(null);
+    cb();
   }
   else {
-    this.get(depends, function (dependencies) {
-      if (dependencies instanceof Array) {
+    if (depends instanceof Array) {
+      this.getAsArray(depends, function (dependencies) {
         cb.apply(null, dependencies);
-      }
-      else {
-        cb.call(null, dependencies);
-      }
-    }.bind(this));
+      });
+    }
+    else {
+      this.getAsObject(Object.keys(depends), function (dependencies) {
+        cb(dependencies);
+      });
+    }
   }
 };
 
@@ -132,14 +138,22 @@ DependencyManager.prototype.provide = function (name, source) {
         this.set(name, new value());
       }
       else {
-        this.get(depends, function (dependencies) {
-          this.set(
-            name,
-            (dependencies instanceof Array) ?
-              DependencyManager._construct(value, dependencies) :
+        if (depends instanceof Array) {
+          this.getAsArray(depends, function (dependencies) {
+            this.set(
+              name,
+              DependencyManager._construct(value, dependencies)
+            );
+          }.bind(this));
+        }
+        else {
+          this.getAsObject(Object.keys(depends), function (dependencies) {
+            this.set(
+              name,
               new value(dependencies)
-          );
-        }.bind(this));
+            );
+          }.bind(this));
+        }
       }
     }
     else if (type === 'factory') {
@@ -149,14 +163,22 @@ DependencyManager.prototype.provide = function (name, source) {
         this.set(name, value());
       }
       else {
-        this.get(depends, function (dependencies) {
-          this.set(
-            name,
-            (dependencies instanceof Array) ?
-              value.apply(null, dependencies) :
-              value.call(null, dependencies)
-          );
-        }.bind(this));
+        if (depends instanceof Array) {
+          this.getAsArray(depends, function (dependencies) {
+            this.set(
+              name,
+              value.apply(null, dependencies)
+            );
+          }.bind(this));
+        }
+        else {
+          this.getAsObject(Object.keys(depends), function (dependencies) {
+            this.set(
+              name,
+              value(dependencies)
+            );
+          }.bind(this));
+        }
       }
     }
   }
