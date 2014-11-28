@@ -73,6 +73,36 @@ DependencyManager.prototype.getAsObject = function (names, cb) {
   return promise;
 };
 
+DependencyManager.prototype.invoke = function () {
+  var depends,
+      cb;
+
+  if (typeof arguments[0] === 'function') {
+    cb = arguments[0];
+    depends = arguments[1];
+  }
+  else {
+    depends = arguments[0];
+    cb = arguments[1];
+  }
+
+  depends = depends || cb.$depends;
+
+  if (!depends) {
+    cb.call(null);
+  }
+  else {
+    this.get(depends, function (dependencies) {
+      if (dependencies instanceof Array) {
+        cb.apply(null, dependencies);
+      }
+      else {
+        cb.call(null, dependencies);
+      }
+    }.bind(this));
+  }
+};
+
 DependencyManager.prototype.provide = function (name, source) {
   var exported;
 
