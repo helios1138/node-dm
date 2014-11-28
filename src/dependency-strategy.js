@@ -1,6 +1,7 @@
 'use strict';
 
-var Resource = require('./resource');
+var
+  utils = require('./utils');
 
 function ArrayStrategy(dependencies) {
   this.requiredDependencies = dependencies;
@@ -41,7 +42,7 @@ function ObjectStrategy(dependencies) {
   this.buildReturningValue = function buildReturningValue(allDependencies) {
     var returnedObject = {};
     this.requiredDependencies.forEach(function (dependencyName) {
-      returnedObject[Resource.parseName(dependencyName).resource] = allDependencies[dependencyName];
+      returnedObject[utils.parseName(dependencyName).resource] = allDependencies[dependencyName];
     });
     return returnedObject;
   };
@@ -52,6 +53,10 @@ function ObjectStrategy(dependencies) {
 }
 
 module.exports = function createDependencyStrategy(dependencies) {
+  if (dependencies && dependencies.requiredDependencies) {
+    return dependencies;
+  }
+
   if (Array.isArray(dependencies)) {
     return new ArrayStrategy(dependencies);
   }

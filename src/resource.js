@@ -1,6 +1,9 @@
 'use strict';
 
-var q = require('q');
+var
+  q = require('q'),
+  createDependencyStrategy = require('./dependency-strategy'),
+  utils = require('./utils');
 
 /**
  * @param {DM} dm
@@ -27,10 +30,10 @@ function Resource(dm, name) {
   this._state = null;
 
   /**
-   * @type {string[]}
+   * @type {{ requiredDependencies: string[] }}
    * @private
    */
-  this._dependencies = [];
+  this._dependencies = createDependencyStrategy([]);
 
   /**
    * @type {{ string: Promise }}
@@ -38,15 +41,6 @@ function Resource(dm, name) {
    */
   this._delays = {};
 }
-
-Resource.parseName = function (name) {
-  var parts = name.split(':');
-
-  return {
-    resource: parts[0],
-    state: parts[1] || null
-  };
-};
 
 /**
  * @param {string|string[]} dependencies
@@ -56,17 +50,13 @@ Resource.parseName = function (name) {
 Resource.prototype.depends = function (dependencies, callback) {
   var self = this;
 
-  if (!Array.isArray(dependencies)) {
-    dependencies = [dependencies];
-  }
-
-  this._dependencies = dependencies;
+  this._dependencies = createDependencyStrategy(dependencies);
 
   this._checkForCircularDependency(this._name);
 
   if (typeof callback === 'function') {
     this._dm.get(this._dependencies, function () {
-      self._checkForOutdatedDependencyStates(dependencies);
+      self._checkForOutdatedDependencyStates();
 
       var result = callback.apply(null, Array.prototype.slice.call(arguments));
 
@@ -166,19 +156,14 @@ Resource.prototype._getFullName = function () {
 };
 
 /**
- * @param {string|string[]} dependencies
  * @private
  */
-Resource.prototype._checkForOutdatedDependencyStates = function (dependencies) {
+Resource.prototype._checkForOutdatedDependencyStates = function () {
   var self = this;
 
-  if (!Array.isArray(dependencies)) {
-    dependencies = [dependencies];
-  }
-
-  dependencies.forEach(function (dependency) {
+  this._dependencies.requiredDependencies.forEach(function (dependency) {
     var
-      resourceName = Resource.parseName(dependency),
+      resourceName = utils.parseName(dependency),
       resource = self._dm.getResource(resourceName[0]),
       resourceState;
 
@@ -199,15 +184,15 @@ Resource.prototype._checkForOutdatedDependencyStates = function (dependencies) {
 Resource.prototype._checkForCircularDependency = function (dependency) {
   var
     self = this,
-    conflictingDependencyIdx = this._dependencies.indexOf(dependency);
+    conflictingDependencyIdx = this._dependencies.requiredDependencies.indexOf(dependency);
 
   if (conflictingDependencyIdx !== -1) {
     throw new Error('Circular dependency found: "' + dependency + '" <- "' + this._name + '"');
   }
   else {
-    this._dependencies
+    this._dependencies.requiredDependencies
       .map(function (dependency) {
-        return self._dm.getResource(Resource.parseName(dependency).resource);
+        return self._dm.getResource(utils.parseName(dependency).resource);
       })
       .filter(function (resource) {
         return (resource !== undefined);

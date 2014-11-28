@@ -143,6 +143,32 @@ describe('dependency injection', function () {
         });
     });
 
+    it('allows resources to be requested as object', function () {
+      dm.resource('c')
+        .depends({ a: true, b : true })
+        .provide(3);
+
+      dm.set('a', 1);
+      dm.set('b', 2);
+
+      return dm.get('c')
+        .then(function (c) {
+          c.should.equal(3);
+        });
+    });
+
+    it('allows resources to be provided as object', function (done) {
+      dm.resource('c')
+        .depends({ a: true, b : true }, function (props) {
+          props.should.have.property('a', 1);
+          props.should.have.property('b', 2);
+          done();
+        });
+
+      dm.set('a', 1);
+      dm.set('b', 2);
+    });
+
     it('allows resources to use their dependencies when providing', function () {
       dm.resource('c')
         .depends(['a', 'b'], function (a, b) {
@@ -289,6 +315,23 @@ describe('dependency injection', function () {
         })
       ]);
     });
+
+    it.only('allows resources to be requested as object with states', function (done) {
+      dm.resource('a').provide(1).setState('too early');
+      dm.set('b', 2);
+
+      dm.resource('c')
+        .depends({ a: 'ready', b : true }, function (props) {
+          props.should.have.property('a', 1);
+          props.should.have.property('b', 2);
+          done();
+        });
+
+      setTimeout(function () {
+        dm.resource('a').setState('ready');
+      }, 10);
+    });
+
 
     it('should keep the order in which dependents would get the resource in certain states', function () {
       var some = {};

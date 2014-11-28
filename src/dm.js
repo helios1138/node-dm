@@ -164,7 +164,7 @@ DM.prototype._getMissingByResource = function () {
   for (key in this._resources) {
     if (this._resources.hasOwnProperty(key)) {
       resource = this._resources[key];
-      resource._dependencies.forEach(checkResourceDependencies.bind(this, resource._name));
+      resource._dependencies.requiredDependencies.forEach(checkResourceDependencies.bind(this, resource._name));
     }
   }
 
