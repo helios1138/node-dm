@@ -3,6 +3,10 @@
 var Promise = require('bluebird');
 
 function Dependency(resolved, value) {
+  /*
+  TODO; add name, embryo and link to other dependencies
+   */
+
   this._resolved = resolved;
   this._value = value;
   this._promise = null;
