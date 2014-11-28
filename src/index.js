@@ -1,3 +1,4 @@
 'use strict';
 
-module.exports = new (require('./dm'))();
+var DependencyManager = require('./dependency-manager');
+module.exports = new DependencyManager();

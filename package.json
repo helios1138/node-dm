@@ -1,6 +1,6 @@
 {
   "name": "node-dm",
-  "version": "0.4.0",
+  "version": "2.0.0",
   "description": "Asynchronous Dependency Injection Manager for Node.JS",
   "main": "src/index.js",
   "scripts": {
@@ -17,14 +17,15 @@
     "dependency",
     "injection",
     "injector",
-    "asynchronous"
+    "asynchronous",
+    "ioc"
   ],
   "bugs": {
     "url": "https://github.com/helios1138/node-dm/issues"
   },
   "homepage": "https://github.com/helios1138/node-dm",
   "dependencies": {
-    "q": "^1.0.1"
+    "bluebird": "^2.3.11"
   },
   "devDependencies": {
     "mocha": "^1.18.2",
