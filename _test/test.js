@@ -12,7 +12,8 @@ describe('dependency injection', function () {
   });
 
   describe('core api', function () {
-    it('allows to set and get dependency', function (done) {
+    it('allows t' +
+       'o set and get dependency', function (done) {
       dm.set('a', 1);
 
       dm.get('a', function (a) {
