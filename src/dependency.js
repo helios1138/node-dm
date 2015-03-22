@@ -17,7 +17,7 @@ function Dependency(dm) {
 
 /**
  * @param {string} type
- * @param {*} value
+ * @param {*|{ $depends: Array|Object }} value
  */
 Dependency.prototype.provide = function (type, value) {
   this._type = type;
