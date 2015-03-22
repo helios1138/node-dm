@@ -1,4 +1,25 @@
 {
+	// -----------------
+	// --------------------------------------------------------------------
+	// JSHint Configuration, Strict Edition
+	// --------------------------------------------------------------------
+	//
+	// This is a options template for [JSHint][1], using [JSHint example][2]
+	// and [Ory Band's example][3] as basis and setting config values to
+	// be most strict:
+	//
+	// * set all enforcing options to true
+	// * set all relaxing options to false
+	// * set all environment options to false, except the browser value
+	// * set all JSLint legacy options to false
+	//
+	// [1]: http://www.jshint.com/
+	// [2]: https://github.com/jshint/node-jshint/blob/master/example/config.json
+	// [3]: https://github.com/oryband/dotfiles/blob/master/jshintrc
+	//
+	// @author http://michael.haschke.biz/
+	// @license http://unlicense.org/
+
   // == Enforcing Options ===============================================
   //
   // These options tell JSHint to be more strict towards your code. Use
@@ -18,7 +39,7 @@
   "plusplus": true,     // Prohibit use of `++` & `--`.
   "regexp": true,     // Prohibit `.` and `[^...]` in regular expressions.
   "undef": true,     // Require all non-global variables be declared before they are used.
-  "strict": false,     // Require `use strict` pragma in every file.
+  "strict": true,     // Require `use strict` pragma in every file.
   "trailing": true,     // Prohibit trailing whitespaces.
 
   // == Relaxing Options ================================================
@@ -33,7 +54,7 @@
   "debug": false,    // Allow debugger statements e.g. browser breakpoints.
   "eqnull": false,    // Tolerate use of `== null`.
   "es5": false,    // Allow EcmaScript 5 syntax.
-  "esnext": true,    // Allow ES.next specific features such as `const` and `let`.
+  "esnext": false,    // Allow ES.next specific features such as `const` and `let`.
   "evil": false,    // Tolerate use of `eval`.
   "expr": false,    // Tolerate `ExpressionStatement` as Programs.
   "funcscope": false,    // Tolerate declarations of variables inside of control structures while accessing them later from the outside.
