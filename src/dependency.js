@@ -2,6 +2,10 @@
 
 global.Promise = Promise || require('promise');
 
+/**
+ * @param {DependencyManager} dm
+ * @constructor
+ */
 function Dependency(dm) {
   this._dm = dm;
   this._type = null;
@@ -11,6 +15,10 @@ function Dependency(dm) {
   this._isInstantiated = false;
 }
 
+/**
+ * @param {string} type
+ * @param {*} value
+ */
 Dependency.prototype.provide = function (type, value) {
   this._type = type;
 
@@ -21,6 +29,9 @@ Dependency.prototype.provide = function (type, value) {
   this._resolve(value);
 };
 
+/**
+ * @returns {Promise}
+ */
 Dependency.prototype.getPromise = function () {
   if (!this._isInstantiated) {
     this._instantiatePromise();
@@ -30,6 +41,9 @@ Dependency.prototype.getPromise = function () {
   return this._promise;
 };
 
+/**
+ * @private
+ */
 Dependency.prototype._instantiatePromise = function () {
   this._promise = this._promise
     .then(function (value) {
@@ -38,6 +52,12 @@ Dependency.prototype._instantiatePromise = function () {
     .then(function (result) { return this._instantiate(result[0], result[1]); }.bind(this));
 };
 
+/**
+ * @param {*} source
+ * @param {Array|Object} dependencies
+ * @returns {*}
+ * @private
+ */
 Dependency.prototype._instantiate = function (source, dependencies) {
   if (this._type === 'value') {
     return source;
@@ -50,9 +70,17 @@ Dependency.prototype._instantiate = function (source, dependencies) {
   }
 };
 
+/**
+ * @param {Function} constructor
+ * @param {Array|Object} dependencies
+ * @returns {Object}
+ * @private
+ */
 Dependency.prototype._instantiateFromClass = function (constructor, dependencies) {
+  var dependencyNames = this._dependencyNames;
+
   function F() {
-    return Array.isArray(this._dependencyNames) ?
+    return Array.isArray(dependencyNames) ?
       constructor.apply(this, dependencies) :
       constructor.call(this, dependencies);
   }
@@ -62,6 +90,12 @@ Dependency.prototype._instantiateFromClass = function (constructor, dependencies
   return new F();
 };
 
+/**
+ * @param {Function} factory
+ * @param {Array|Object} dependencies
+ * @returns {*}
+ * @private
+ */
 Dependency.prototype._instantiateFromFactory = function (factory, dependencies) {
   return Array.isArray(this._dependencyNames) ?
     factory.apply(null, dependencies) :
