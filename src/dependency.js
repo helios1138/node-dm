@@ -1,5 +1,7 @@
 'use strict';
 
+global.Promise = Promise || require('promise');
+
 function Dependency(dm) {
   this._dm = dm;
   this._type = null;
@@ -21,18 +23,11 @@ Dependency.prototype.provide = function (type, value) {
 
 Dependency.prototype.getPromise = function () {
   if (!this._isInstantiated) {
-    if (this._needsInstantiation()) {
-      this._instantiatePromise();
-    }
-
+    this._instantiatePromise();
     this._isInstantiated = true;
   }
 
   return this._promise;
-};
-
-Dependency.prototype._needsInstantiation = function () {
-  return this._type !== 'value';
 };
 
 Dependency.prototype._instantiatePromise = function () {
@@ -40,20 +35,19 @@ Dependency.prototype._instantiatePromise = function () {
     .then(function (value) {
       return Promise.all([value, this._dm.resolve(this._dependencyNames)]);
     }.bind(this))
-    .then(function (result) {return this._instantiate(result[0], result[1]);}.bind(this));
+    .then(function (result) { return this._instantiate(result[0], result[1]); }.bind(this));
 };
 
 Dependency.prototype._instantiate = function (source, dependencies) {
-  var object;
-
-  if (this._type === 'class') {
-    object = this._instantiateFromClass(source, dependencies);
+  if (this._type === 'value') {
+    return source;
+  }
+  else if (this._type === 'class') {
+    return this._instantiateFromClass(source, dependencies);
   }
   else if (this._type === 'factory') {
-    object = this._instantiateFromFactory(source, dependencies);
+    return this._instantiateFromFactory(source, dependencies);
   }
-
-  return object;
 };
 
 Dependency.prototype._instantiateFromClass = function (constructor, dependencies) {

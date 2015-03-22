@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/helios1138/node-dm",
   "dependencies": {
-    "babel": "^4.7.16"
+    "promise": "^6.1.0"
   },
   "devDependencies": {
     "mocha": "^1.18.2",

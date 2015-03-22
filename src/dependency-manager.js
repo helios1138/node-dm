@@ -1,20 +1,27 @@
 'use strict';
 
+global.Promise = Promise || require('promise');
+
 var Dependency = require('./dependency').Dependency;
 
 function DependencyManager() {
   this._dependencies = {};
 }
 
-DependencyManager.prototype.set = function (name, type, value) {
+DependencyManager.prototype.provide = function (name, type, value) {
   if (typeof this._dependencies[name] === 'undefined') {
     this._dependencies[name] = new Dependency(this);
+  }
+
+  if (value === undefined) {
+    value = type;
+    type = 'value';
   }
 
   this._dependencies[name].provide(type, value);
 };
 
-DependencyManager.prototype.get = function (name) {
+DependencyManager.prototype.retrieve = function (name) {
   if (typeof this._dependencies[name] === 'undefined') {
     this._dependencies[name] = new Dependency(this);
   }
@@ -31,7 +38,7 @@ DependencyManager.prototype.resolve = function (dependencyNames) {
 DependencyManager.prototype._resolveAsArray = function (dependencyNames) {
   return Promise
     .all(dependencyNames
-      .map(function (name) {return this.get(name).getPromise();}.bind(this)
+      .map(function (name) { return this.retrieve(name).getPromise(); }.bind(this)
     ));
 };
 
