@@ -1,6 +1,6 @@
 'use strict';
 
-global.Promise = Promise || require('promise');
+global.Promise = global.Promise || require('promise');
 
 /**
  * @param {DependencyManager} dm
@@ -68,6 +68,9 @@ Dependency.prototype._instantiate = function (source, dependencies) {
   else if (this._type === 'factory') {
     return this._instantiateFromFactory(source, dependencies);
   }
+  else if (this._type === 'asyncFactory') {
+    return this._instantiateFromAsyncFactory(source, dependencies);
+  }
 };
 
 /**
@@ -100,6 +103,20 @@ Dependency.prototype._instantiateFromFactory = function (factory, dependencies) 
   return Array.isArray(this._dependencyNames) ?
     factory.apply(null, dependencies) :
     factory.call(null, dependencies);
+};
+
+/**
+ * @param {Function} asyncFactory
+ * @param {Array|Object} dependencies
+ * @returns {*}
+ * @private
+ */
+Dependency.prototype._instantiateFromAsyncFactory = function (asyncFactory, dependencies) {
+  return new Promise(function (resolve) {
+    Array.isArray(this._dependencyNames) ?
+      asyncFactory.apply(null, dependencies.concat([resolve])) :
+      asyncFactory.call(null, dependencies, resolve);
+  }.bind(this));
 };
 
 module.exports = { Dependency: Dependency };

@@ -2,7 +2,7 @@
 
 require('should');
 
-global.Promise = Promise || require('promise');
+global.Promise = global.Promise || require('promise');
 
 var Dependency = require('../src/dependency').Dependency;
 
@@ -15,7 +15,7 @@ describe('dependency', function () {
     });
   });
 
-  it('can represent values', function () {
+  it('can be a value', function () {
     dependency.provide('value', 123);
 
     return dependency.getPromise()
@@ -24,7 +24,7 @@ describe('dependency', function () {
       });
   });
 
-  it('can represent classes', function () {
+  it('can be a class', function () {
     function Person() {}
 
     dependency.provide('class', Person);
@@ -35,7 +35,7 @@ describe('dependency', function () {
       });
   });
 
-  it('can represent factories', function () {
+  it('can be a factory', function () {
     var someObject = { is: 'something' };
 
     function getSomeObject() {
@@ -47,6 +47,23 @@ describe('dependency', function () {
     return dependency.getPromise()
       .then(function (result) {
         result.should.equal(someObject);
-      })
+      });
+  });
+
+  it('can be an async factory', function () {
+    var someObject = { is: 'something' };
+
+    function getSomeObject(done) {
+      setTimeout(function () {
+        done(someObject);
+      }, 0);
+    }
+
+    dependency.provide('asyncFactory', getSomeObject);
+
+    return dependency.getPromise()
+      .then(function (result) {
+        result.should.equal(someObject);
+      });
   });
 });

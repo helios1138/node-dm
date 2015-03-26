@@ -1,6 +1,6 @@
 'use strict';
 
-global.Promise = Promise || require('promise');
+global.Promise = global.Promise || require('promise');
 
 var Dependency = require('./dependency').Dependency;
 
@@ -48,6 +48,16 @@ DependencyManager.prototype.class = function (name, constructor) {
  */
 DependencyManager.prototype.factory = function (name, factory) {
   this.provide(name, 'factory', factory);
+  return this;
+};
+
+/**
+ * @param {string} name
+ * @param {Function} factoryAsync
+ * @returns {DependencyManager}
+ */
+DependencyManager.prototype.factoryAsync = function (name, factoryAsync) {
+  this.provide(name, 'factoryAsync', factoryAsync);
   return this;
 };
 
