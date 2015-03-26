@@ -6,7 +6,7 @@ global.Promise = global.Promise || require('promise');
 
 var DependencyManager = require('../src/dependency-manager').DependencyManager;
 
-describe('dependencyManager', function () {
+describe('api', function () {
   var dm;
 
   beforeEach(function () {
@@ -61,6 +61,108 @@ describe('dependencyManager', function () {
         });
     });
 
+    describe('as a class with dependencies', function () {
+      it('as an array', function () {
+        var timesCalled = {
+          some:  0,
+          other: 0
+        };
+
+        dm.provide('another', 'value', 123);
+
+        function Some() {
+          timesCalled.some += 1;
+          this.is = 'some';
+        }
+
+        dm.provide('some', 'class', Some);
+
+        function Other(some, another) {
+          timesCalled.other += 1;
+          this.is = 'other';
+          this.some = some;
+          this.another = another;
+
+          some.should.be.instanceof(Some);
+          another.should.equal(123);
+        }
+
+        Other.$depends = ['some', 'another'];
+
+        dm.provide('other', 'class', Other);
+
+        return dm.resolve(['other', 'some'])
+          .then(function (result) {
+            result.should.have.length(2);
+
+            var other = result[0],
+                some  = result[1];
+
+            other.should.be.instanceof(Other);
+            other.should.have.property('is', 'other');
+            other.should.have.properties(['some', 'another']);
+            other.some.should.be.instanceof(Some);
+            other.another.should.equal(123);
+
+            some.should.be.instanceof(Some);
+            some.should.equal(other.some);
+
+            timesCalled.some.should.equal(1);
+            timesCalled.other.should.equal(1);
+          });
+      });
+
+      it('as an object', function () {
+        var timesCalled = {
+          some:  0,
+          other: 0
+        };
+
+        dm.provide('another', 'value', 123);
+
+        function Some() {
+          timesCalled.some += 1;
+          this.is = 'some';
+        }
+
+        dm.provide('some', 'class', Some);
+
+        function Other(deps) {
+          timesCalled.other += 1;
+          this.is = 'other';
+          this.some = deps.some;
+          this.another = deps.another;
+
+          deps.some.should.be.instanceof(Some);
+          deps.another.should.equal(123);
+        }
+
+        Other.$depends = { some: true, another: true };
+
+        dm.provide('other', 'class', Other);
+
+        return dm.resolve(['other', 'some'])
+          .then(function (result) {
+            result.should.have.length(2);
+
+            var other = result[0],
+                some  = result[1];
+
+            other.should.be.instanceof(Other);
+            other.should.have.property('is', 'other');
+            other.should.have.properties(['some', 'another']);
+            other.some.should.be.instanceof(Some);
+            other.another.should.equal(123);
+
+            some.should.be.instanceof(Some);
+            some.should.equal(other.some);
+
+            timesCalled.some.should.equal(1);
+            timesCalled.other.should.equal(1);
+          });
+      });
+    });
+
     it('as a factory', function () {
       var timesCalled = 0;
 
@@ -89,6 +191,112 @@ describe('dependencyManager', function () {
           first.should.equal(second);
           timesCalled.should.equal(1);
         });
+    });
+
+    describe('as a factory with dependencies', function () {
+      it('as an array', function () {
+        var timesCalled = {
+          some:  0,
+          other: 0
+        };
+
+        dm.provide('another', 'value', 123);
+
+        function Some() {
+          timesCalled.some += 1;
+          this.is = 'some';
+        }
+
+        dm.provide('some', 'class', Some);
+
+        function getOther(some, another) {
+          timesCalled.other += 1;
+
+          some.should.be.instanceof(Some);
+          another.should.equal(123);
+
+          return {
+            is:      'other',
+            some:    some,
+            another: another
+          };
+        }
+
+        getOther.$depends = ['some', 'another'];
+
+        dm.provide('other', 'factory', getOther);
+
+        return dm.resolve(['other', 'some'])
+          .then(function (result) {
+            result.should.have.length(2);
+
+            var other = result[0],
+                some  = result[1];
+
+            other.should.have.property('is', 'other');
+            other.should.have.properties(['some', 'another']);
+            other.some.should.be.instanceof(Some);
+            other.another.should.equal(123);
+
+            some.should.be.instanceof(Some);
+            some.should.equal(other.some);
+
+            timesCalled.some.should.equal(1);
+            timesCalled.other.should.equal(1);
+          });
+      });
+
+      it('as an object', function () {
+        var timesCalled = {
+          some:  0,
+          other: 0
+        };
+
+        dm.provide('another', 'value', 123);
+
+        function Some() {
+          timesCalled.some += 1;
+          this.is = 'some';
+        }
+
+        dm.provide('some', 'class', Some);
+
+        function getOther(deps) {
+          timesCalled.other += 1;
+
+          deps.some.should.be.instanceof(Some);
+          deps.another.should.equal(123);
+
+          return {
+            is:      'other',
+            some:    deps.some,
+            another: deps.another
+          };
+        }
+
+        getOther.$depends = { some: true, another: true };
+
+        dm.provide('other', 'factory', getOther);
+
+        return dm.resolve(['other', 'some'])
+          .then(function (result) {
+            result.should.have.length(2);
+
+            var other = result[0],
+                some  = result[1];
+
+            other.should.have.property('is', 'other');
+            other.should.have.properties(['some', 'another']);
+            other.some.should.be.instanceof(Some);
+            other.another.should.equal(123);
+
+            some.should.be.instanceof(Some);
+            some.should.equal(other.some);
+
+            timesCalled.some.should.equal(1);
+            timesCalled.other.should.equal(1);
+          });
+      });
     });
 
     it('as a factory returning a promise', function () {
@@ -163,7 +371,74 @@ describe('dependencyManager', function () {
   });
 
   it('provides shorthand methods for defining dependencies', function () {
-    dm.provide('some', 'value', 123);
-    dm.value('some', 123);
+    dm.provide('some1', 'value', { is: 'some1' });
+    dm.value('some2', { is: 'some2' });
+
+    dm.provide('other1', 'class', function Other1() { this.is = 'other1'; });
+    dm.class('other2', function Other2() { this.is = 'other2'; });
+
+    dm.provide('another1', 'factory', function getAnother1() { return { is: 'another1' }; });
+    dm.factory('another2', function getAnother2() { return { is: 'another2' }; });
+
+    return dm.resolve(['some1', 'some2', 'other1', 'other2', 'another1', 'another2'])
+      .then(function (results) {
+        results.should.have.length(6);
+      });
+  });
+
+  describe('only constructs dependencies when they are needed', function () {
+    it('from classes', function () {
+      var called = {
+        some:  false,
+        other: false
+      };
+
+      function Some() {
+        called.some = true;
+      }
+
+      function Other() {
+        called.other = true;
+      }
+
+      dm.class('some', Some);
+      dm.class('other', Other);
+
+      return dm.resolve(['some'])
+        .then(function () {
+          called.should.have.properties({
+            some:  true,
+            other: false
+          });
+        });
+    });
+
+    it('from factories', function () {
+      var called = {
+        some:  false,
+        other: false
+      };
+
+      function getSome() {
+        called.some = true;
+        return {};
+      }
+
+      function getOther() {
+        called.other = true;
+        return {};
+      }
+
+      dm.factory('some', getSome);
+      dm.factory('other', getOther);
+
+      return dm.resolve(['other'])
+        .then(function () {
+          called.should.have.properties({
+            some:  false,
+            other: true
+          });
+        });
+    });
   });
 });
