@@ -53,16 +53,6 @@ DependencyManager.prototype.factory = function (name, factory) {
 
 /**
  * @param {string} name
- * @param {Function} factoryAsync
- * @returns {DependencyManager}
- */
-DependencyManager.prototype.factoryAsync = function (name, factoryAsync) {
-  this.provide(name, 'factoryAsync', factoryAsync);
-  return this;
-};
-
-/**
- * @param {string} name
  * @param {*} value
  * @returns {DependencyManager}
  */

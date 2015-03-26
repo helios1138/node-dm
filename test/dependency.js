@@ -7,12 +7,13 @@ global.Promise = global.Promise || require('promise');
 var Dependency = require('../src/dependency').Dependency;
 
 describe('dependency', function () {
-  var dependency;
+  var dmMock = {
+        resolve: function () { return Promise.resolve([]); }
+      },
+      dependency;
 
   beforeEach(function () {
-    dependency = new Dependency({
-      resolve: function () { return Promise.resolve([]); }
-    });
+    dependency = new Dependency(dmMock);
   });
 
   it('can be a value', function () {
@@ -21,6 +22,15 @@ describe('dependency', function () {
     return dependency.getPromise()
       .then(function (result) {
         result.should.equal(123);
+      });
+  });
+
+  it('can be a value that is a promise', function () {
+    dependency.provide('value', Promise.resolve(456));
+
+    return dependency.getPromise()
+      .then(function (result) {
+        result.should.equal(456);
       });
   });
 
@@ -50,16 +60,18 @@ describe('dependency', function () {
       });
   });
 
-  it('can be an async factory', function () {
+  it('can be a factory returning a promise', function () {
     var someObject = { is: 'something' };
 
-    function getSomeObject(done) {
-      setTimeout(function () {
-        done(someObject);
-      }, 0);
+    function getSomeObject() {
+      return new Promise(function (resolve) {
+        setTimeout(function () {
+          resolve(someObject);
+        }, 0);
+      });
     }
 
-    dependency.provide('asyncFactory', getSomeObject);
+    dependency.provide('factory', getSomeObject);
 
     return dependency.getPromise()
       .then(function (result) {
