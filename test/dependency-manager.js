@@ -152,7 +152,7 @@ describe('dependencyManager', function () {
       return dm
         .resolve({ object1: true, object2: true, object3: true, object4: true, object5: true })
         .then(function (result) {
-          result.should.have.keys(['object1','object2','object3','object4','object5']);
+          result.should.have.keys(['object1', 'object2', 'object3', 'object4', 'object5']);
           result.object1.should.have.property('is', 'object1');
           result.object2.should.have.property('is', 'object2');
           result.object3.should.have.property('is', 'object3');
