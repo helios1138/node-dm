@@ -446,7 +446,98 @@ describe('dm', function () {
 
   describe('errors and messages', function () {
     it('propagates exceptions through dependency tree', function () {
+      var called = {
+        Level3Dep1:      false,
+        Level3Dep2:      false,
+        Level3Dep3:      false,
+        Level2Dep1:      false,
+        Level2Dep2:      false,
+        Level1Dep1:      false,
+        Level1Dep2:      false,
+        Level1Dep1Catch: false,
+        Level1Dep2Catch: false
+      };
 
+      function Level3Dep1() {
+        called.Level3Dep1 = true;
+        throw new Error('some exception happened');
+      }
+
+      dm.class('level3Dep1', Level3Dep1);
+
+      function Level3Dep2() {
+        called.Level3Dep2 = true;
+      }
+
+      dm.class('level3Dep2', Level3Dep2);
+
+      function Level3Dep3() {
+        called.Level3Dep3 = true;
+      }
+
+      dm.class('level3Dep3', Level3Dep3);
+
+      function Level2Dep1() {
+        called.Level2Dep1 = true;
+      }
+
+      Level2Dep1.$depends = ['level3Dep1', 'level3Dep2'];
+
+      dm.class('level2Dep1', Level2Dep1);
+
+      function Level2Dep2() {
+        called.Level2Dep2 = true;
+      }
+
+      Level2Dep2.$depends = ['level3Dep3'];
+
+      dm.class('level2Dep2', Level2Dep2);
+
+      function Level1Dep1() {
+        called.Level1Dep1 = true;
+      }
+
+      Level1Dep1.$depends = ['level2Dep1', 'level2Dep2'];
+
+      dm.class('level1Dep1', Level1Dep1);
+
+      function Level1Dep2() {
+        called.Level1Dep2 = true;
+      }
+
+      Level1Dep2.$depends = ['level2Dep2'];
+
+      dm.class('level1Dep2', Level1Dep2);
+
+      return Promise.all([
+        dm.resolve(['level1Dep1'])
+          .then(function (result) {
+          })
+          .catch(function (err) {
+            called.Level1Dep1Catch = true;
+            err.should.have.property('message', 'some exception happened');
+          }),
+        dm.resolve(['level1Dep2'])
+          .then(function (result) {
+            result[0].should.be.instanceof(Level1Dep2);
+          })
+          .catch(function () {
+            called.Level1Dep2Catch = true;
+          })
+      ])
+        .then(function () {
+          called.should.have.properties({
+            Level3Dep1:      true,
+            Level3Dep2:      true,
+            Level3Dep3:      true,
+            Level2Dep1:      false,
+            Level2Dep2:      true,
+            Level1Dep1:      false,
+            Level1Dep2:      true,
+            Level1Dep1Catch: true,
+            Level1Dep2Catch: false
+          });
+        });
     });
     it('propagates promise rejections through dependency tree', function () {
 
