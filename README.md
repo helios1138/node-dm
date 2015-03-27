@@ -75,7 +75,10 @@ function connectToDb(config){
 
 connectToDb.$depends = ['config'];
 
-/* provide your resource as a factory function, that returns what you need (or the promise of that) */
+/* 
+ * provide your resource as a factory function, that returns what you need
+ * (or the promise of that)
+ */
 dm.factory('db', connectToDb);
 ```
 
