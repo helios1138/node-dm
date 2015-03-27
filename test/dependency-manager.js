@@ -387,6 +387,40 @@ describe('dm', function () {
         });
     });
 
+    it('provides shorthand methods for resolving the root dependency', function () {
+      var called = {
+        db:    false,
+        app:   false,
+        catch: false
+      };
+
+      function Db() {
+        called.db = true;
+      }
+
+
+      function App() {
+        called.app = true;
+      }
+
+      App.$depends = ['db'];
+
+      dm.class('db', Db)
+        .class('app', App);
+
+      return dm.run('app')
+        .catch(function (err) {
+          called.catch = true;
+        })
+        .then(function () {
+          called.should.have.properties({
+            db:    true,
+            app:   true,
+            catch: false
+          });
+        });
+    });
+
     describe('only constructs dependencies when they are needed', function () {
       it('from classes', function () {
         var called = {
@@ -540,10 +574,65 @@ describe('dm', function () {
         });
     });
     it('propagates promise rejections through dependency tree', function () {
+      var called = {
+        a:     false,
+        b:     false,
+        then:  false,
+        catch: false
+      };
 
+      function getA() {
+        called.a = true;
+        return Promise.reject(new Error('some reason'));
+      }
+
+      function getB() {
+        called.b = true;
+      }
+
+      getB.$depends = { a: true };
+
+      dm.factory('a', getA)
+        .factory('b', getB);
+
+      return dm.resolve(['b'])
+        .then(function () {
+          called.then = true;
+        })
+        .catch(function (err) {
+          called.catch = true;
+          err.should.have.property('message', 'some reason');
+        })
+        .then(function () {
+          called.should.have.properties({
+            a:     true,
+            b:     false,
+            then:  false,
+            catch: true
+          });
+        });
     });
     it('notifies when dependency is requested but not resolved in some time', function () {
+      var called = {
+        catch: false
+      };
 
+      dm.config({
+        dependencyTimeout: 100
+      });
+
+      dm.value('some', new Promise(function (resolve) {
+        setTimeout(resolve.bind(null), 1000);
+      }));
+
+      return dm.run('some')
+        .catch(function (err) {
+          err.should.be.instanceof(Error).and.have.property('message', 'Dependency "some" was not resolved in 100ms');
+          called.catch = true;
+        })
+        .then(function () {
+          called.catch.should.equal(true);
+        });
     });
     it('notifies when a circular dependency occurs', function () {
 

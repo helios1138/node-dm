@@ -13,7 +13,18 @@ function DependencyManager() {
    * @private
    */
   this._dependencies = {};
+  this._config = {
+    dependencyTimeout: false
+  };
 }
+
+DependencyManager.prototype.config = function (config) {
+  for (var i in config) {
+    if (config.hasOwnProperty(i)) {
+      this._config[i] = config[i];
+    }
+  }
+};
 
 /**
  * @param {string} name
@@ -63,11 +74,10 @@ DependencyManager.prototype.value = function (name, value) {
 
 /**
  * @param {string} dependencyName
- * @returns {DependencyManager}
+ * @returns {Promise}
  */
 DependencyManager.prototype.run = function (dependencyName) {
-  this.resolve([dependencyName]);
-  return this;
+  return this.resolve([dependencyName]);
 };
 
 /**
@@ -80,16 +90,35 @@ DependencyManager.prototype.resolve = function (dependencyNames) {
     this._resolveAsObject(dependencyNames);
 };
 
+DependencyManager.prototype._resolveDependency = function (name) {
+  var dependencyPromise = this._getDependency(name).getPromise(),
+      dependencyTimeout = this._config.dependencyTimeout;
+
+  if (dependencyTimeout) {
+    return Promise.race([
+      dependencyPromise,
+      new Promise(function (resolve, reject) {
+        setTimeout(
+          function () {
+            reject(new Error('Dependency "' + name + '" was not resolved in ' + dependencyTimeout + 'ms'));
+          },
+          dependencyTimeout
+        );
+      })
+    ]);
+  }
+  else {
+    return dependencyPromise;
+  }
+};
+
 /**
  * @param {Array|Object} dependencyNames
  * @returns {Promise}
  * @private
  */
 DependencyManager.prototype._resolveAsArray = function (dependencyNames) {
-  return Promise
-    .all(dependencyNames
-      .map(function (name) { return this._getDependency(name).getPromise(); }.bind(this)
-    ));
+  return Promise.all(dependencyNames.map(this._resolveDependency.bind(this)));
 };
 
 /**
