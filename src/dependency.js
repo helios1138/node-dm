@@ -13,6 +13,7 @@ function Dependency(dm, name) {
   this._type = null;
   this._depends = [];
   this._resolve = null;
+  this._isResolved = false;
   this._sourcePromise = new Promise(function (resolve) { this._resolve = resolve; }.bind(this));
   this._instantiatedPromise = null;
 }
@@ -22,6 +23,12 @@ function Dependency(dm, name) {
  * @param {*|{ $depends: Array|Object }} value
  */
 Dependency.prototype.provide = function (type, value) {
+  if (this._isResolved) {
+    throw new Error('Dependency "' + this._name + '" was already provided');
+  }
+
+  this._isResolved = true;
+
   this._type = type;
 
   if (type !== 'value' && value.$depends) {

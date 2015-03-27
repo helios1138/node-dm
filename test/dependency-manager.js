@@ -840,5 +840,21 @@ describe('dm', function () {
       });
 
     });
+
+    it('notifies when dependency with the same name provided twice', function () {
+      var called = false;
+
+      dm.class('some', function Some1() {});
+
+      try {
+        dm.class('some', function Some2() {});
+      }
+      catch (err) {
+        err.should.be.instanceof(Error).and.have.property('message', 'Dependency "some" was already provided');
+        called = true;
+      }
+
+      called.should.equal(true);
+    });
   });
 });
