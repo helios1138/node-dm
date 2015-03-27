@@ -637,53 +637,208 @@ describe('dm', function () {
         });
     });
 
-    it('notifies when a circular dependency occurs', function () {
-      var called = {
-        catch: false
-      };
+    describe('notifies when a circular dependency occurs', function () {
+      it('self-reference', function () {
+        var called = {
+          catch: false
+        };
 
-      /*
-       * TODO: make this default option
-       */
-      dm.config({
-        checkForCircular: true
+        function One() {
+
+        }
+
+        One.$depends = ['one'];
+
+        dm.class('one', One);
+
+        return dm.run('one')
+          .catch(function (err) {
+            err.should.be.instanceof(Error).and.have.property('message', 'Circular dependency found: "one" < "one"');
+            called.catch = true;
+          })
+          .then(function () {
+            called.catch.should.equal(true);
+          });
       });
 
-      function One() {
+      it('dependency loop', function () {
+        var called = {
+          catch: false
+        };
 
-      }
+        function One() {
 
-      One.$depends = ['two'];
+        }
+
+        One.$depends = ['two'];
 
 
-      function Two() {
+        function Two() {
 
-      }
+        }
 
-      Two.$depends = ['three'];
+        Two.$depends = ['three'];
 
-      function Three() {
+        function Three() {
 
-      }
+        }
 
-      Three.$depends = ['one'];
+        Three.$depends = ['four'];
 
-      dm.class('one', One)
-        .class('two', Two)
-        .class('three', Three);
+        function Four() {
 
-      dm.config({
-        dependencyTimeout: 100
+        }
+
+        Four.$depends = ['one'];
+
+        dm.class('one', One);
+        dm.class('two', Two);
+        dm.class('three', Three);
+        dm.class('four', Four);
+
+        return dm.run('one')
+          .catch(function (err) {
+            err.should.be.instanceof(Error).and.have.property(
+              'message',
+              'Circular dependency found: "one" < "two" < "three" < "four" < "one"'
+            );
+            called.catch = true;
+          })
+          .then(function () {
+            called.catch.should.equal(true);
+          });
       });
 
-      return dm.run('one')
-        .catch(function (err) {
-          err.should.be.instanceof(Error).and.have.property('message', 'sss');
-          called.catch = true;
-        })
-        .then(function () {
-          called.catch.should.equal(true);
-        });
+      it('short dependency loop', function () {
+        var called = {
+          catch: false
+        };
+
+        function One() {
+
+        }
+
+        One.$depends = ['two'];
+
+
+        function Two() {
+
+        }
+
+        Two.$depends = ['one'];
+
+        dm.class('one', One);
+        dm.class('two', Two);
+
+        return dm.run('one')
+          .catch(function (err) {
+            err.should.be.instanceof(Error).and.have.property(
+              'message',
+              'Circular dependency found: "one" < "two" < "one"'
+            );
+            called.catch = true;
+          })
+          .then(function () {
+            called.catch.should.equal(true);
+          });
+      });
+
+      it('dependency lasso', function () {
+        var called = {
+          catch: false
+        };
+
+        function One() {
+
+        }
+
+        One.$depends = ['two'];
+
+
+        function Two() {
+
+        }
+
+        Two.$depends = ['three'];
+
+        function Three() {
+
+        }
+
+        Three.$depends = ['four'];
+
+        function Four() {
+
+        }
+
+        Four.$depends = ['two'];
+
+        dm.class('one', One);
+        dm.class('two', Two);
+        dm.class('three', Three);
+        dm.class('four', Four);
+
+        return dm.run('one')
+          .catch(function (err) {
+            err.should.be.instanceof(Error).and.have.property(
+              'message',
+              'Circular dependency found: "two" < "three" < "four" < "two"'
+            );
+            called.catch = true;
+          })
+          .then(function () {
+            called.catch.should.equal(true);
+          });
+      });
+
+      it('short dependency lasso', function () {
+        var called = {
+          catch: false
+        };
+
+        function One() {
+
+        }
+
+        One.$depends = ['two'];
+
+
+        function Two() {
+
+        }
+
+        Two.$depends = ['three'];
+
+        function Three() {
+
+        }
+
+        Three.$depends = ['four'];
+
+        function Four() {
+
+        }
+
+        Four.$depends = ['three'];
+
+        dm.class('one', One);
+        dm.class('two', Two);
+        dm.class('three', Three);
+        dm.class('four', Four);
+
+        return dm.run('one')
+          .catch(function (err) {
+            err.should.be.instanceof(Error).and.have.property(
+              'message',
+              'Circular dependency found: "three" < "four" < "three"'
+            );
+            called.catch = true;
+          })
+          .then(function () {
+            called.catch.should.equal(true);
+          });
+      });
+
     });
   });
 });

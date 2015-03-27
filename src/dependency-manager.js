@@ -14,8 +14,7 @@ function DependencyManager() {
    */
   this._dependencies = {};
   this._config = {
-    dependencyTimeout: false,
-    checkForCircular:  false
+    dependencyTimeout: false
   };
 }
 
@@ -37,14 +36,7 @@ DependencyManager.prototype.config = function (config) {
  * @returns {DependencyManager}
  */
 DependencyManager.prototype.provide = function (name, type, value) {
-  var dependency = this._getDependency(name);
-
-  dependency.provide(type, value);
-
-  if (this._config.checkForCircular) {
-    this._checkForCircular(dependency);
-  }
-
+  this.getDependency(name).provide(type, value);
   return this;
 };
 
@@ -98,11 +90,23 @@ DependencyManager.prototype.resolve = function (dependencyNames) {
 
 /**
  * @param {string} name
+ * @returns {Dependency}
+ */
+DependencyManager.prototype.getDependency = function (name) {
+  if (typeof this._dependencies[name] === 'undefined') {
+    this._dependencies[name] = new Dependency(this, name);
+  }
+
+  return this._dependencies[name];
+};
+
+/**
+ * @param {string} name
  * @returns {Promise}
  * @private
  */
 DependencyManager.prototype._resolveDependency = function (name) {
-  var dependencyPromise = this._getDependency(name).getPromise(),
+  var dependencyPromise = this.getDependency(name).getPromise(),
       dependencyTimeout = this._config.dependencyTimeout;
 
   if (dependencyTimeout) {
@@ -151,32 +155,6 @@ DependencyManager.prototype._resolveAsObject = function (dependencyNames) {
 
       return obj;
     }.bind(this));
-};
-
-/**
- * @param {string} name
- * @returns {Dependency}
- * @private
- */
-DependencyManager.prototype._getDependency = function (name) {
-  if (typeof this._dependencies[name] === 'undefined') {
-    this._dependencies[name] = new Dependency(this);
-  }
-
-  return this._dependencies[name];
-};
-
-/**
- * @param {Dependency} dependency
- * @private
- */
-DependencyManager.prototype._checkForCircular = function (dependency) {
-
-
-  //Promise.all()
-
-
-  console.log(dependency.getDependencyNames());
 };
 
 module.exports = { DependencyManager: DependencyManager };

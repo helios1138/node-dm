@@ -4,10 +4,12 @@ global.Promise = global.Promise || require('promise');
 
 /**
  * @param {DependencyManager} dm
+ * @param {string} name
  * @constructor
  */
-function Dependency(dm) {
+function Dependency(dm, name) {
   this._dm = dm;
+  this._name = name;
   this._type = null;
   this._depends = [];
   this._resolve = null;
@@ -27,6 +29,13 @@ Dependency.prototype.provide = function (type, value) {
   }
 
   this._resolve(value);
+};
+
+/**
+ * @returns {string}
+ */
+Dependency.prototype.getName = function () {
+  return this._name;
 };
 
 /**
@@ -51,14 +60,29 @@ Dependency.prototype.getDependencyNames = function () {
   return Array.isArray(this._depends) ? this._depends : Object.keys(this._depends);
 };
 
+Dependency.prototype.getDependencies = function () {
+  return Promise.all(
+    this.getDependencyNames().map(function (name) {
+      var dependency = this._dm.getDependency(name);
+      return dependency
+        .getSourcePromise()
+        .then(function () { return dependency; });
+    }.bind(this))
+  );
+};
+
 /**
  * @returns {Promise}
  * @private
  */
 Dependency.prototype._getInstantiatedPromise = function () {
-  return this._sourcePromise
-    .then(function (value) {
-      return Promise.all([value, this._dm.resolve(this._depends)]);
+  return Promise
+    .all([
+      this._sourcePromise,
+      this._checkForCircularDependencies()
+    ])
+    .then(function (result) {
+      return Promise.all([result[0], this._dm.resolve(this._depends)]);
     }.bind(this))
     .then(function (result) { return this._instantiate(result[0], result[1]); }.bind(this));
 };
@@ -111,6 +135,49 @@ Dependency.prototype._instantiateFromFactory = function (factory, dependencies) 
   return Array.isArray(this._depends) ?
     factory.apply(null, dependencies) :
     factory.call(null, dependencies);
+};
+
+/**
+ * @returns {Promise}
+ * @private
+ */
+Dependency.prototype._checkForCircularDependencies = function () {
+  var link           = [this.getName()],
+      alreadyChecked = [];
+
+  function checkIfDependencyIsSelf(dependency, subDependencies) {
+    return Promise.all(subDependencies.map(function (subDependency) {
+      link.push(subDependency.getName());
+
+      if (alreadyChecked.indexOf(subDependency) >= 0) {
+        return;
+      }
+
+      alreadyChecked.push(subDependency);
+
+      if (subDependency === dependency) {
+        throw new Error(
+          'Circular dependency found: ' +
+          link
+            .map(function (part) { return '"' + part + '"'; })
+            .join(' < ')
+        );
+      }
+      else {
+        return checkThirdLevelDependencies(dependency, subDependency);
+      }
+    }));
+  }
+
+  function checkThirdLevelDependencies(dependency, subDependency) {
+    return subDependency
+      .getDependencies()
+      .then(function (subDependencies) {
+        return checkIfDependencyIsSelf(dependency, subDependencies);
+      });
+  }
+
+  return checkThirdLevelDependencies(this, this);
 };
 
 module.exports = { Dependency: Dependency };
