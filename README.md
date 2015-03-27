@@ -3,11 +3,11 @@ Node DM
 ####Asynchronous Dependency Manager for Node.JS
 
 > A simple library to handle dependencies in your app. 
- - **resources** can be provided in any order and time (hence the asynchronousity)
- - instances are created only when they are needed (being depended upon), so you can **require()** all the things you have (e.g. in some module) and stuff you won't be using will simply remain dormant
- - internally relies on **promises** (polyfill is used for node.js < 0.12.x, otherwise native ES6)
- - will notify you of missing dependencies
- - will check for **circular dependencies**
+> - **resources** can be provided in any order and time (hence the asynchronousity)
+> - instances are created only when they are needed (being depended upon), so you can **require()** all the things you have (e.g. in some module) and stuff you won't be using will simply remain dormant
+> - internally relies on **promises** (polyfill is used for node.js < 0.12.x, otherwise native ES6)
+> - will notify you of missing dependencies
+> - will check for **circular dependencies**
 
 to start:
 ```sh
@@ -94,7 +94,10 @@ var config = {
 	mongo: 'mongodb://localhost:27017/mydb'
 };
 
-/* this resource is a simple value and does not need instantiation; can also be a promise */
+/* 
+ * this resource is a simple value and does not need instantiation; 
+ * can also be a promise 
+ */
 dm.value('config', config);
 ```
 
@@ -188,10 +191,10 @@ connectToDb.$depends = ['config'];
 dm.factory('db', connectToDb);
 ```
 
-alternatively, dependencies of a resource can be requests as an object
+alternatively, dependencies of a resource can be requested as an object:
 ```js
 function Parser(deps){
-	/* you will receive your dependencies as an object */
+	/* you will receive your dependencies as a map */
 	this.deps = deps;
 	this.is = 'awesome parser';
 }
@@ -210,4 +213,28 @@ Parser.$depends = {
 };
 
 dm.class('parser', Parser);
+```
+
+you can also just request dependencies anywhere in the code like this:
+
+```js
+dm.resolve(['db', 'config', 'pi'])
+	.then(function(result){
+		/* result is an array of dependencies */
+		var db = result[0],
+			config = result[1],
+			pi = result[2];
+	});
+```
+
+or like this:
+
+```js
+dm.resolve({db: true, config: true, pi: true})
+	.then(function(result){
+		/* result is a map of dependencies */
+		var db = result.db,
+			config = result.config,
+			pi = result.pi;
+	});
 ```
