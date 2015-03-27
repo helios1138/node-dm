@@ -5,7 +5,7 @@ Node DM
 > A simple library to handle dependencies in your app. 
  - **resources** can be provided in any order and time (hence the asynchronousity)
  - instances are created only when they are needed (being depended upon), so you can **require()** all the things you have (e.g. in some module) and stuff you won't be using will simply remain dormant
- - internally relies on **promises**
+ - internally relies on **promises** (polyfill is used for node.js < 0.12.x, otherwise native ES6)
  - will notify you of missing dependencies
  - will check for **circular dependencies**
 
