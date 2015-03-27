@@ -3,12 +3,13 @@ Node DM
 ####Asynchronous Dependency Manager for Node.JS
 
 > A simple library to handle dependencies in your app. 
- - resources can be provided in any order and time (hence the asynchronousity)
- - instances are created only when they are needed (being depended upon)
- - internally relies on promises
+ - **resources** can be provided in any order and time (hence the asynchronousity)
+ - instances are created only when they are needed (being depended upon), so you can **require()** all the things you have (e.g. in some module) and stuff you won't be using will simply remain dormant
+ - internally relies on **promises**
  - will notify you of missing dependencies
- - will check for circular dependencies 
+ - will check for **circular dependencies**
 
+to start:
 ```sh
 npm install node-dm
 ```
@@ -17,7 +18,7 @@ npm install node-dm
 var dm = require('node-dm');
 ```
 
-optional config
+optional config:
 ```js
 /* will reject dependencies that were not resolved after a period of time */
 dm.config({ dependencyTimeout: 5000 });
