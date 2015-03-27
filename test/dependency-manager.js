@@ -573,6 +573,7 @@ describe('dm', function () {
           });
         });
     });
+
     it('propagates promise rejections through dependency tree', function () {
       var called = {
         a:     false,
@@ -612,6 +613,7 @@ describe('dm', function () {
           });
         });
     });
+
     it('notifies when dependency is requested but not resolved in some time', function () {
       var called = {
         catch: false
@@ -634,8 +636,47 @@ describe('dm', function () {
           called.catch.should.equal(true);
         });
     });
-    it('notifies when a circular dependency occurs', function () {
 
+    it('notifies when a circular dependency occurs', function () {
+      var called = {
+        catch: false
+      };
+
+      function One() {
+
+      }
+
+      One.$depends = ['two'];
+
+
+      function Two() {
+
+      }
+
+      Two.$depends = ['three'];
+
+      function Three() {
+
+      }
+
+      Three.$depends = ['one'];
+
+      dm.class('one', One)
+        .class('two', Two)
+        .class('three', Three);
+
+      dm.config({
+        dependencyTimeout: 100
+      });
+
+      return dm.run('one')
+        .catch(function (err) {
+          err.should.be.instanceof(Error).and.have.property('message', 'sss');
+          called.catch = true;
+        })
+        .then(function () {
+          called.catch.should.equal(true);
+        });
     });
   });
 });

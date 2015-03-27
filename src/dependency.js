@@ -9,7 +9,7 @@ global.Promise = global.Promise || require('promise');
 function Dependency(dm) {
   this._dm = dm;
   this._type = null;
-  this._dependencyNames = [];
+  this._depends = [];
   this._resolve = null;
   this._promise = new Promise(function (resolve) { this._resolve = resolve; }.bind(this));
   this._isInstantiated = false;
@@ -23,7 +23,7 @@ Dependency.prototype.provide = function (type, value) {
   this._type = type;
 
   if (type !== 'value' && value.$depends) {
-    this._dependencyNames = value.$depends;
+    this._depends = value.$depends;
   }
 
   this._resolve(value);
@@ -42,12 +42,19 @@ Dependency.prototype.getPromise = function () {
 };
 
 /**
+ * @returns {string[]}
+ */
+Dependency.prototype.getDependencyNames = function () {
+  return Array.isArray(this._depends) ? this._depends : Object.keys(this._depends);
+};
+
+/**
  * @private
  */
 Dependency.prototype._instantiatePromise = function () {
   this._promise = this._promise
     .then(function (value) {
-      return Promise.all([value, this._dm.resolve(this._dependencyNames)]);
+      return Promise.all([value, this._dm.resolve(this._depends)]);
     }.bind(this))
     .then(function (result) { return this._instantiate(result[0], result[1]); }.bind(this));
 };
@@ -77,7 +84,7 @@ Dependency.prototype._instantiate = function (source, dependencies) {
  * @private
  */
 Dependency.prototype._instantiateFromClass = function (constructor, dependencies) {
-  var dependencyNames = this._dependencyNames;
+  var dependencyNames = this._depends;
 
   function F() {
     return Array.isArray(dependencyNames) ?
@@ -97,7 +104,7 @@ Dependency.prototype._instantiateFromClass = function (constructor, dependencies
  * @private
  */
 Dependency.prototype._instantiateFromFactory = function (factory, dependencies) {
-  return Array.isArray(this._dependencyNames) ?
+  return Array.isArray(this._depends) ?
     factory.apply(null, dependencies) :
     factory.call(null, dependencies);
 };

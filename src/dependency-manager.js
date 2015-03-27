@@ -18,6 +18,9 @@ function DependencyManager() {
   };
 }
 
+/**
+ * @param {Object} config
+ */
 DependencyManager.prototype.config = function (config) {
   for (var i in config) {
     if (config.hasOwnProperty(i)) {
@@ -90,6 +93,11 @@ DependencyManager.prototype.resolve = function (dependencyNames) {
     this._resolveAsObject(dependencyNames);
 };
 
+/**
+ * @param {string} name
+ * @returns {Promise}
+ * @private
+ */
 DependencyManager.prototype._resolveDependency = function (name) {
   var dependencyPromise = this._getDependency(name).getPromise(),
       dependencyTimeout = this._config.dependencyTimeout;
