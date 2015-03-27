@@ -19,7 +19,11 @@
     "injector",
     "asynchronous",
     "async",
-    "ioc"
+    "ioc",
+    "promise",
+    "promises",
+    "class",
+    "factory"
   ],
   "bugs": {
     "url": "https://github.com/helios1138/node-dm/issues"
