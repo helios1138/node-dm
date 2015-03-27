@@ -20,8 +20,11 @@ var dm = require('node-dm');
 
 optional config:
 ```js
-/* will reject dependencies that were not resolved after a period of time */
-dm.config({ dependencyTimeout: 5000 });
+/*
+ * will reject dependencies that were not resolved after a period of time
+ * (2.5s is the default value, set to `false` to disable)
+ */
+dm.config({ dependencyTimeout: 2500 });
 ```
 
 Short demo

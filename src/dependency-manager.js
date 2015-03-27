@@ -14,7 +14,7 @@ function DependencyManager() {
    */
   this._dependencies = {};
   this._config = {
-    dependencyTimeout: false
+    dependencyTimeout: 2500
   };
 }
 
