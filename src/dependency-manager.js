@@ -5,7 +5,7 @@ global.Promise = global.Promise || require('promise');
 var Dependency = require('./dependency').Dependency;
 
 /**
- * @constructor
+ * @class
  */
 function DependencyManager() {
   /**
@@ -107,7 +107,7 @@ DependencyManager.prototype.getDependency = function (name) {
  */
 DependencyManager.prototype._resolveDependency = function (name) {
   var dependencyPromise = this.getDependency(name).getPromise(),
-      dependencyTimeout = this._config.dependencyTimeout;
+    dependencyTimeout = this._config.dependencyTimeout;
 
   if (dependencyTimeout) {
     return Promise.race([
@@ -157,4 +157,7 @@ DependencyManager.prototype._resolveAsObject = function (dependencyNames) {
     }.bind(this));
 };
 
-module.exports = { DependencyManager: DependencyManager };
+/**
+ * @type {DependencyManager}
+ */
+module.exports = new DependencyManager();

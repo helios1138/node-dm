@@ -5,7 +5,7 @@ global.Promise = global.Promise || require('promise');
 /**
  * @param {DependencyManager} dm
  * @param {string} name
- * @constructor
+ * @class
  */
 function Dependency(dm, name) {
   this._dm = dm;
