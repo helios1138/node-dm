@@ -11,8 +11,8 @@ function Dependency(dm) {
   this._type = null;
   this._depends = [];
   this._resolve = null;
-  this._promise = new Promise(function (resolve) { this._resolve = resolve; }.bind(this));
-  this._isInstantiated = false;
+  this._sourcePromise = new Promise(function (resolve) { this._resolve = resolve; }.bind(this));
+  this._instantiatedPromise = null;
 }
 
 /**
@@ -33,12 +33,15 @@ Dependency.prototype.provide = function (type, value) {
  * @returns {Promise}
  */
 Dependency.prototype.getPromise = function () {
-  if (!this._isInstantiated) {
-    this._instantiatePromise();
-    this._isInstantiated = true;
+  if (!this._instantiatedPromise) {
+    this._instantiatedPromise = this._getInstantiatedPromise();
   }
 
-  return this._promise;
+  return this._instantiatedPromise;
+};
+
+Dependency.prototype.getSourcePromise = function () {
+  return this._sourcePromise;
 };
 
 /**
@@ -49,10 +52,11 @@ Dependency.prototype.getDependencyNames = function () {
 };
 
 /**
+ * @returns {Promise}
  * @private
  */
-Dependency.prototype._instantiatePromise = function () {
-  this._promise = this._promise
+Dependency.prototype._getInstantiatedPromise = function () {
+  return this._sourcePromise
     .then(function (value) {
       return Promise.all([value, this._dm.resolve(this._depends)]);
     }.bind(this))

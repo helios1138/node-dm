@@ -14,7 +14,8 @@ function DependencyManager() {
    */
   this._dependencies = {};
   this._config = {
-    dependencyTimeout: false
+    dependencyTimeout: false,
+    checkForCircular:  false
   };
 }
 
@@ -36,11 +37,13 @@ DependencyManager.prototype.config = function (config) {
  * @returns {DependencyManager}
  */
 DependencyManager.prototype.provide = function (name, type, value) {
-  if (typeof this._dependencies[name] === 'undefined') {
-    this._dependencies[name] = new Dependency(this);
-  }
+  var dependency = this._getDependency(name);
 
-  this._dependencies[name].provide(type, value);
+  dependency.provide(type, value);
+
+  if (this._config.checkForCircular) {
+    this._checkForCircular(dependency);
+  }
 
   return this;
 };
@@ -153,6 +156,7 @@ DependencyManager.prototype._resolveAsObject = function (dependencyNames) {
 /**
  * @param {string} name
  * @returns {Dependency}
+ * @private
  */
 DependencyManager.prototype._getDependency = function (name) {
   if (typeof this._dependencies[name] === 'undefined') {
@@ -160,6 +164,19 @@ DependencyManager.prototype._getDependency = function (name) {
   }
 
   return this._dependencies[name];
+};
+
+/**
+ * @param {Dependency} dependency
+ * @private
+ */
+DependencyManager.prototype._checkForCircular = function (dependency) {
+
+
+  //Promise.all()
+
+
+  console.log(dependency.getDependencyNames());
 };
 
 module.exports = { DependencyManager: DependencyManager };

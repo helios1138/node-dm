@@ -642,6 +642,13 @@ describe('dm', function () {
         catch: false
       };
 
+      /*
+       * TODO: make this default option
+       */
+      dm.config({
+        checkForCircular: true
+      });
+
       function One() {
 
       }
