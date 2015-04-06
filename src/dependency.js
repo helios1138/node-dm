@@ -3,12 +3,12 @@
 global.Promise = global.Promise || require('promise');
 
 /**
- * @param {DependencyManager} dm
+ * @param {Container} container
  * @param {string} name
  * @class
  */
-function Dependency(dm, name) {
-  this._dm = dm;
+function Dependency(container, name) {
+  this._container = container;
   this._name = name;
   this._type = null;
   this._depends = [];
@@ -56,6 +56,9 @@ Dependency.prototype.getPromise = function () {
   return this._instantiatedPromise;
 };
 
+/**
+ * @returns {Promise}
+ */
 Dependency.prototype.getSourcePromise = function () {
   return this._sourcePromise;
 };
@@ -67,10 +70,13 @@ Dependency.prototype.getDependencyNames = function () {
   return Array.isArray(this._depends) ? this._depends : Object.keys(this._depends);
 };
 
+/**
+ * @returns {Promise}
+ */
 Dependency.prototype.getDependencies = function () {
   return Promise.all(
     this.getDependencyNames().map(function (name) {
-      var dependency = this._dm.getDependency(name);
+      var dependency = this._container.get(name);
       return dependency
         .getSourcePromise()
         .then(function () { return dependency; });
@@ -89,7 +95,7 @@ Dependency.prototype._getInstantiatedPromise = function () {
       this._checkForCircularDependencies()
     ])
     .then(function (result) {
-      return Promise.all([result[0], this._dm.resolve(this._depends)]);
+      return Promise.all([result[0], this._container.resolve(this._depends)]);
     }.bind(this))
     .then(function (result) { return this._instantiate(result[0], result[1]); }.bind(this));
 };

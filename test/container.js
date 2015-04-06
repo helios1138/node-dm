@@ -4,21 +4,21 @@ require('should');
 
 global.Promise = global.Promise || require('promise');
 
-var DependencyManager = require('../src/dependency-manager').DependencyManager;
+var Container = require('../src/container').Container;
 
 describe('dm', function () {
-  var dm;
+  var container;
 
   beforeEach(function () {
-    dm = new DependencyManager();
+    container = new Container();
   });
 
   describe('api', function () {
     describe('can define dependencies', function () {
       it('as a value', function () {
-        dm.provide('some', 'value', 123);
+        container.get('some').provide('value', 123);
 
-        return dm
+        return container
           .resolve(['some'])
           .then(function (result) {
             result.should.eql([123]);
@@ -26,9 +26,9 @@ describe('dm', function () {
       });
 
       it('as a value that is a promise', function () {
-        dm.provide('some', 'value', Promise.resolve(456));
+        container.get('some').provide('value', Promise.resolve(456));
 
-        return dm
+        return container
           .resolve(['some'])
           .then(function (result) {
             result.should.eql([456]);
@@ -43,11 +43,11 @@ describe('dm', function () {
           this.is = 'some';
         }
 
-        dm.provide('some', 'class', Some);
+        container.get('some').provide('class', Some);
 
         return Promise.all([
-          dm.resolve(['some']),
-          dm.resolve(['some'])
+          container.resolve(['some']),
+          container.resolve(['some'])
         ])
           .then(function (result) {
             result.should.have.length(2);
@@ -69,14 +69,14 @@ describe('dm', function () {
             other: 0
           };
 
-          dm.provide('another', 'value', 123);
+          container.get('another').provide('value', 123);
 
           function Some() {
             timesCalled.some += 1;
             this.is = 'some';
           }
 
-          dm.provide('some', 'class', Some);
+          container.get('some').provide('class', Some);
 
           function Other(some, another) {
             timesCalled.other += 1;
@@ -90,9 +90,9 @@ describe('dm', function () {
 
           Other.$depends = ['some', 'another'];
 
-          dm.provide('other', 'class', Other);
+          container.get('other').provide('class', Other);
 
-          return dm.resolve(['other', 'some'])
+          return container.resolve(['other', 'some'])
             .then(function (result) {
               result.should.have.length(2);
 
@@ -119,14 +119,14 @@ describe('dm', function () {
             other: 0
           };
 
-          dm.provide('another', 'value', 123);
+          container.get('another').provide('value', 123);
 
           function Some() {
             timesCalled.some += 1;
             this.is = 'some';
           }
 
-          dm.provide('some', 'class', Some);
+          container.get('some').provide('class', Some);
 
           function Other(deps) {
             timesCalled.other += 1;
@@ -140,9 +140,9 @@ describe('dm', function () {
 
           Other.$depends = { some: true, another: true };
 
-          dm.provide('other', 'class', Other);
+          container.get('other').provide('class', Other);
 
-          return dm.resolve(['other', 'some'])
+          return container.resolve(['other', 'some'])
             .then(function (result) {
               result.should.have.length(2);
 
@@ -175,11 +175,11 @@ describe('dm', function () {
           };
         }
 
-        dm.provide('some', 'factory', getSome);
+        container.get('some').provide('factory', getSome);
 
         return Promise.all([
-          dm.resolve(['some']),
-          dm.resolve(['some'])
+          container.resolve(['some']),
+          container.resolve(['some'])
         ])
           .then(function (result) {
             result.should.have.length(2);
@@ -201,14 +201,14 @@ describe('dm', function () {
             other: 0
           };
 
-          dm.provide('another', 'value', 123);
+          container.get('another').provide('value', 123);
 
           function Some() {
             timesCalled.some += 1;
             this.is = 'some';
           }
 
-          dm.provide('some', 'class', Some);
+          container.get('some').provide('class', Some);
 
           function getOther(some, another) {
             timesCalled.other += 1;
@@ -225,9 +225,9 @@ describe('dm', function () {
 
           getOther.$depends = ['some', 'another'];
 
-          dm.provide('other', 'factory', getOther);
+          container.get('other').provide('factory', getOther);
 
-          return dm.resolve(['other', 'some'])
+          return container.resolve(['other', 'some'])
             .then(function (result) {
               result.should.have.length(2);
 
@@ -253,14 +253,14 @@ describe('dm', function () {
             other: 0
           };
 
-          dm.provide('another', 'value', 123);
+          container.get('another').provide('value', 123);
 
           function Some() {
             timesCalled.some += 1;
             this.is = 'some';
           }
 
-          dm.provide('some', 'class', Some);
+          container.get('some').provide('class', Some);
 
           function getOther(deps) {
             timesCalled.other += 1;
@@ -277,9 +277,9 @@ describe('dm', function () {
 
           getOther.$depends = { some: true, another: true };
 
-          dm.provide('other', 'factory', getOther);
+          container.get('other').provide('factory', getOther);
 
-          return dm.resolve(['other', 'some'])
+          return container.resolve(['other', 'some'])
             .then(function (result) {
               result.should.have.length(2);
 
@@ -315,11 +315,11 @@ describe('dm', function () {
           });
         }
 
-        dm.provide('some', 'factory', getSome);
+        container.get('some').provide('factory', getSome);
 
         return Promise.all([
-          dm.resolve(['some']),
-          dm.resolve(['some'])
+          container.resolve(['some']),
+          container.resolve(['some'])
         ])
           .then(function (result) {
             result.should.have.length(2);
@@ -337,15 +337,15 @@ describe('dm', function () {
 
     describe('can resolve dependencies', function () {
       beforeEach(function () {
-        dm.provide('object1', 'value', { is: 'object1' });
-        dm.provide('object2', 'value', Promise.resolve({ is: 'object2' }));
-        dm.provide('object3', 'class', function () { this.is = 'object3'; });
-        dm.provide('object4', 'factory', function () { return { is: 'object4' }; });
-        dm.provide('object5', 'factory', function () { return Promise.resolve({ is: 'object5' }); });
+        container.get('object1').provide('value', { is: 'object1' });
+        container.get('object2').provide('value', Promise.resolve({ is: 'object2' }));
+        container.get('object3').provide('class', function () { this.is = 'object3'; });
+        container.get('object4').provide('factory', function () { return { is: 'object4' }; });
+        container.get('object5').provide('factory', function () { return Promise.resolve({ is: 'object5' }); });
       });
 
       it('as array', function () {
-        return dm
+        return container
           .resolve(['object1', 'object2', 'object3', 'object4', 'object5'])
           .then(function (result) {
             result.should.have.length(5);
@@ -358,7 +358,7 @@ describe('dm', function () {
       });
 
       it('as object', function () {
-        return dm
+        return container
           .resolve({ object1: true, object2: true, object3: true, object4: true, object5: true })
           .then(function (result) {
             result.should.have.keys(['object1', 'object2', 'object3', 'object4', 'object5']);
@@ -369,56 +369,6 @@ describe('dm', function () {
             result.object5.should.have.property('is', 'object5');
           });
       });
-    });
-
-    it('provides shorthand methods for defining dependencies', function () {
-      dm.provide('some1', 'value', { is: 'some1' });
-      dm.value('some2', { is: 'some2' });
-
-      dm.provide('other1', 'class', function Other1() { this.is = 'other1'; });
-      dm.class('other2', function Other2() { this.is = 'other2'; });
-
-      dm.provide('another1', 'factory', function getAnother1() { return { is: 'another1' }; });
-      dm.factory('another2', function getAnother2() { return { is: 'another2' }; });
-
-      return dm.resolve(['some1', 'some2', 'other1', 'other2', 'another1', 'another2'])
-        .then(function (results) {
-          results.should.have.length(6);
-        });
-    });
-
-    it('provides shorthand methods for resolving the root dependency', function () {
-      var called = {
-        db:    false,
-        app:   false,
-        catch: false
-      };
-
-      function Db() {
-        called.db = true;
-      }
-
-
-      function App() {
-        called.app = true;
-      }
-
-      App.$depends = ['db'];
-
-      dm.class('db', Db)
-        .class('app', App);
-
-      return dm.run('app')
-        .catch(function (err) {
-          called.catch = true;
-        })
-        .then(function () {
-          called.should.have.properties({
-            db:    true,
-            app:   true,
-            catch: false
-          });
-        });
     });
 
     describe('only constructs dependencies when they are needed', function () {
@@ -436,10 +386,10 @@ describe('dm', function () {
           called.other = true;
         }
 
-        dm.class('some', Some);
-        dm.class('other', Other);
+        container.get('some').provide('class', Some);
+        container.get('other').provide('class', Other);
 
-        return dm.resolve(['some'])
+        return container.resolve(['some'])
           .then(function () {
             called.should.have.properties({
               some:  true,
@@ -464,10 +414,10 @@ describe('dm', function () {
           return {};
         }
 
-        dm.factory('some', getSome);
-        dm.factory('other', getOther);
+        container.get('some').provide('factory', getSome);
+        container.get('other').provide('factory', getOther);
 
-        return dm.resolve(['other'])
+        return container.resolve(['other'])
           .then(function () {
             called.should.have.properties({
               some:  false,
@@ -497,19 +447,19 @@ describe('dm', function () {
         throw new Error('some exception happened');
       }
 
-      dm.class('level3Dep1', Level3Dep1);
+      container.get('level3Dep1').provide('class', Level3Dep1);
 
       function Level3Dep2() {
         called.Level3Dep2 = true;
       }
 
-      dm.class('level3Dep2', Level3Dep2);
+      container.get('level3Dep2').provide('class', Level3Dep2);
 
       function Level3Dep3() {
         called.Level3Dep3 = true;
       }
 
-      dm.class('level3Dep3', Level3Dep3);
+      container.get('level3Dep3').provide('class', Level3Dep3);
 
       function Level2Dep1() {
         called.Level2Dep1 = true;
@@ -517,7 +467,7 @@ describe('dm', function () {
 
       Level2Dep1.$depends = ['level3Dep1', 'level3Dep2'];
 
-      dm.class('level2Dep1', Level2Dep1);
+      container.get('level2Dep1').provide('class', Level2Dep1);
 
       function Level2Dep2() {
         called.Level2Dep2 = true;
@@ -525,7 +475,7 @@ describe('dm', function () {
 
       Level2Dep2.$depends = ['level3Dep3'];
 
-      dm.class('level2Dep2', Level2Dep2);
+      container.get('level2Dep2').provide('class', Level2Dep2);
 
       function Level1Dep1() {
         called.Level1Dep1 = true;
@@ -533,7 +483,7 @@ describe('dm', function () {
 
       Level1Dep1.$depends = ['level2Dep1', 'level2Dep2'];
 
-      dm.class('level1Dep1', Level1Dep1);
+      container.get('level1Dep1').provide('class', Level1Dep1);
 
       function Level1Dep2() {
         called.Level1Dep2 = true;
@@ -541,17 +491,17 @@ describe('dm', function () {
 
       Level1Dep2.$depends = ['level2Dep2'];
 
-      dm.class('level1Dep2', Level1Dep2);
+      container.get('level1Dep2').provide('class', Level1Dep2);
 
       return Promise.all([
-        dm.resolve(['level1Dep1'])
+        container.resolve(['level1Dep1'])
           .then(function (result) {
           })
           .catch(function (err) {
             called.Level1Dep1Catch = true;
             err.should.have.property('message', 'some exception happened');
           }),
-        dm.resolve(['level1Dep2'])
+        container.resolve(['level1Dep2'])
           .then(function (result) {
             result[0].should.be.instanceof(Level1Dep2);
           })
@@ -593,10 +543,10 @@ describe('dm', function () {
 
       getB.$depends = { a: true };
 
-      dm.factory('a', getA)
-        .factory('b', getB);
+      container.get('a').provide('factory', getA);
+      container.get('b').provide('factory', getB);
 
-      return dm.resolve(['b'])
+      return container.resolve(['b'])
         .then(function () {
           called.then = true;
         })
@@ -614,29 +564,6 @@ describe('dm', function () {
         });
     });
 
-    it('notifies when dependency is requested but not resolved in some time', function () {
-      var called = {
-        catch: false
-      };
-
-      dm.config({
-        dependencyTimeout: 100
-      });
-
-      dm.value('some', new Promise(function (resolve) {
-        setTimeout(resolve.bind(null), 1000);
-      }));
-
-      return dm.run('some')
-        .catch(function (err) {
-          err.should.be.instanceof(Error).and.have.property('message', 'Dependency "some" was not resolved in 100ms');
-          called.catch = true;
-        })
-        .then(function () {
-          called.catch.should.equal(true);
-        });
-    });
-
     describe('notifies when a circular dependency occurs', function () {
       it('self-reference', function () {
         var called = {
@@ -649,9 +576,9 @@ describe('dm', function () {
 
         One.$depends = ['one'];
 
-        dm.class('one', One);
+        container.get('one').provide('class', One);
 
-        return dm.run('one')
+        return container.resolve(['one'])
           .catch(function (err) {
             err.should.be.instanceof(Error).and.have.property('message', 'Circular dependency found: "one" < "one"');
             called.catch = true;
@@ -691,12 +618,12 @@ describe('dm', function () {
 
         Four.$depends = ['one'];
 
-        dm.class('one', One);
-        dm.class('two', Two);
-        dm.class('three', Three);
-        dm.class('four', Four);
+        container.get('one').provide('class', One);
+        container.get('two').provide('class', Two);
+        container.get('three').provide('class', Three);
+        container.get('four').provide('class', Four);
 
-        return dm.run('one')
+        return container.resolve(['one'])
           .catch(function (err) {
             err.should.be.instanceof(Error).and.have.property(
               'message',
@@ -727,10 +654,10 @@ describe('dm', function () {
 
         Two.$depends = ['one'];
 
-        dm.class('one', One);
-        dm.class('two', Two);
+        container.get('one').provide('class', One);
+        container.get('two').provide('class', Two);
 
-        return dm.run('one')
+        return container.resolve(['one'])
           .catch(function (err) {
             err.should.be.instanceof(Error).and.have.property(
               'message',
@@ -773,12 +700,12 @@ describe('dm', function () {
 
         Four.$depends = ['two'];
 
-        dm.class('one', One);
-        dm.class('two', Two);
-        dm.class('three', Three);
-        dm.class('four', Four);
+        container.get('one').provide('class', One);
+        container.get('two').provide('class', Two);
+        container.get('three').provide('class', Three);
+        container.get('four').provide('class', Four);
 
-        return dm.run('one')
+        return container.resolve(['one'])
           .catch(function (err) {
             err.should.be.instanceof(Error).and.have.property(
               'message',
@@ -821,12 +748,12 @@ describe('dm', function () {
 
         Four.$depends = ['three'];
 
-        dm.class('one', One);
-        dm.class('two', Two);
-        dm.class('three', Three);
-        dm.class('four', Four);
+        container.get('one').provide('class', One);
+        container.get('two').provide('class', Two);
+        container.get('three').provide('class', Three);
+        container.get('four').provide('class', Four);
 
-        return dm.run('one')
+        return container.resolve(['one'])
           .catch(function (err) {
             err.should.be.instanceof(Error).and.have.property(
               'message',
@@ -844,10 +771,10 @@ describe('dm', function () {
     it('notifies when dependency with the same name provided twice', function () {
       var called = false;
 
-      dm.class('some', function Some1() {});
+      container.get('some').provide('class', function Some1() {});
 
       try {
-        dm.class('some', function Some2() {});
+        container.get('some').provide('class', function Some2() {});
       }
       catch (err) {
         err.should.be.instanceof(Error).and.have.property('message', 'Dependency "some" was already provided');
