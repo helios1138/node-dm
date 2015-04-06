@@ -6,7 +6,7 @@ global.Promise = global.Promise || require('promise');
 
 var Container = require('../src/container').Container;
 
-describe('dm', function () {
+describe('container', function () {
   var container;
 
   beforeEach(function () {

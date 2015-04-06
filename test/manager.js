@@ -1,54 +1,48 @@
-/*it('provides shorthand methods for defining dependencies', function () {
-      container.get('some1').provide('value', { is: 'some1' });
-      container.value('some2', { is: 'some2' });
+'use strict';
 
-      container.get('other1').provide('class', function Other1() { this.is = 'other1'; });
-      container.class('other2', function Other2() { this.is = 'other2'; });
+require('should');
 
-      container.get('another1').provide('factory', function getAnother1() { return { is: 'another1' }; });
-      container.factory('another2', function getAnother2() { return { is: 'another2' }; });
+var Manager = require('../src/manager').Manager;
 
-      return container.resolve(['some1', 'some2', 'other1', 'other2', 'another1', 'another2'])
-        .then(function (results) {
-          results.should.have.length(6);
-        });
+describe('manager', function () {
+  var dm;
+
+  describe('api', function () {
+    it('provides shorthand methods for defining dependencies', function () {
+      var called    = [],
+          container = {
+            get: function (name) {
+              return {
+                provide: function (type, value) {
+                  called.push({
+                    name:  name,
+                    type:  type,
+                    value: value
+                  });
+                }
+              };
+            }
+          };
+
+      dm = new Manager(container);
+
+      function SomeClass() {}
+
+      function otherFactory() {}
+
+      dm.class('some', SomeClass);
+      dm.factory('other', otherFactory);
+      dm.value('another', 123);
+
+      called.should.have.length(3);
+      called.should.eql([
+        { name: 'some', type: 'class', value: SomeClass },
+        { name: 'other', type: 'factory', value: otherFactory },
+        { name: 'another', type: 'value', value: 123 }
+      ]);
     });
-
-    it('provides shorthand methods for resolving the root dependency', function () {
-      var called = {
-        db:    false,
-        app:   false,
-        catch: false
-      };
-
-      function Db() {
-        called.db = true;
-      }
-
-
-      function App() {
-        called.app = true;
-      }
-
-      App.$depends = ['db'];
-
-      container.class('db', Db)
-        .class('app', App);
-
-      return container.run('app')
-        .catch(function (err) {
-          called.catch = true;
-        })
-        .then(function () {
-          called.should.have.properties({
-            db:    true,
-            app:   true,
-            catch: false
-          });
-        });
-    });*/
-
-
+  });
+});
 
 /*it('notifies when dependency is requested but not resolved in some time', function () {
      var called = {

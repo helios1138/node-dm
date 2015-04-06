@@ -2,13 +2,12 @@
 
 global.Promise = global.Promise || require('promise');
 
-var Container = require('./container').Container;
-
 /**
+ * @param {Container} container
  * @class
  */
-function Manager() {
-  this._container = new Container();
+function Manager(container) {
+  this._container = container;
   this._config = {
     dependencyTimeout: 2500
   };
