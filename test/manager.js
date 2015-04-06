@@ -2,7 +2,8 @@
 
 require('should');
 
-var Manager = require('../src/manager').Manager;
+var Manager   = require('../src/manager').Manager,
+    Container = require('../src/container').Container;
 
 describe('manager', function () {
   var dm;
@@ -41,28 +42,82 @@ describe('manager', function () {
         { name: 'another', type: 'value', value: 123 }
       ]);
     });
+
+    it('provides shorthand methods for resolving the root dependency', function () {
+      var called    = [],
+          promise   = {},
+          container = {
+            resolve: function (dependencies) {
+              called.push(dependencies);
+              return promise;
+            }
+          };
+
+      dm = new Manager(container);
+
+      var result = dm.run('app');
+
+      called.should.have.length(1);
+      called.should.eql([['app']]);
+      result.should.equal(promise);
+    });
+  });
+
+  describe('errors and messages', function () {
+    it('notifies when dependency is requested but not resolved in some time', function () {
+      dm = new Manager(new Container());
+
+      var called = {
+        catch: false
+      };
+
+      dm.config({
+        dependencyTimeout: 100
+      });
+
+      dm.value('some', new Promise(function (resolve) {
+        setTimeout(resolve.bind(null), 10);
+      }));
+
+      function Redis() {
+
+      }
+
+      dm.class('redis', Redis);
+
+      function getConfig(fs) {
+        return {};
+      }
+
+      getConfig.$depends = ['fs'];
+
+      dm.factory('config', getConfig);
+
+      function connect(config) {
+        return {};
+      }
+
+      connect.$depends = ['config'];
+
+      dm.factory('db', connect);
+
+      function App(db, redis) {
+        this.is = 'app';
+      }
+
+      App.$depends = ['db', 'redis'];
+
+      dm.class('app', App);
+
+      return dm.run('app')
+        .catch(function (err) {
+          console.log(err);
+          err.should.be.instanceof(Error).and.have.property('message', 'Dependency "some" was not resolved in 100ms');
+          called.catch = true;
+        })
+        .then(function () {
+          called.catch.should.equal(true);
+        });
+    });
   });
 });
-
-/*it('notifies when dependency is requested but not resolved in some time', function () {
-     var called = {
-       catch: false
-     };
-
-     container.config({
-       dependencyTimeout: 100
-     });
-
-     container.value('some', new Promise(function (resolve) {
-       setTimeout(resolve.bind(null), 1000);
-     }));
-
-     return container.run('some')
-       .catch(function (err) {
-         err.should.be.instanceof(Error).and.have.property('message', 'Dependency "some" was not resolved in 100ms');
-         called.catch = true;
-       })
-       .then(function () {
-         called.catch.should.equal(true);
-       });
-   });*/

@@ -28,6 +28,13 @@ Container.prototype.get = function (name) {
 };
 
 /**
+ * @returns {Dependency[]}
+ */
+Container.prototype.getAll = function () {
+  return Object.values(this._dependencies);
+};
+
+/**
  * @param {string[]|Object.<string, *>} dependencyNames
  * @returns {Promise}
  */
@@ -38,21 +45,14 @@ Container.prototype.resolve = function (dependencyNames) {
 };
 
 /**
- * @param {string} name
- * @returns {Promise}
- * @private
- */
-Container.prototype._resolveDependency = function (name) {
-  return this.get(name).getPromise();
-};
-
-/**
  * @param {string[]} dependencyNames
  * @returns {Promise}
  * @private
  */
 Container.prototype._resolveAsArray = function (dependencyNames) {
-  return Promise.all(dependencyNames.map(this._resolveDependency.bind(this)));
+  return Promise.all(dependencyNames.map(function (name) {
+    return this.get(name).resolve();
+  }.bind(this)));
 };
 
 /**

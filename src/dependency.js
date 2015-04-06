@@ -10,10 +10,13 @@ global.Promise = global.Promise || require('promise');
 function Dependency(container, name) {
   this._container = container;
   this._name = name;
+
   this._type = null;
   this._depends = [];
+
   this._resolve = null;
   this._isResolved = false;
+
   this._sourcePromise = new Promise(function (resolve) { this._resolve = resolve; }.bind(this));
   this._instantiatedPromise = null;
 }
@@ -48,7 +51,7 @@ Dependency.prototype.getName = function () {
 /**
  * @returns {Promise}
  */
-Dependency.prototype.getPromise = function () {
+Dependency.prototype.resolve = function () {
   if (!this._instantiatedPromise) {
     this._instantiatedPromise = this._getInstantiatedPromise();
   }
@@ -82,6 +85,13 @@ Dependency.prototype.getDependencies = function () {
         .then(function () { return dependency; });
     }.bind(this))
   );
+};
+
+/**
+ * @returns {boolean}
+ */
+Dependency.prototype.isResolved = function () {
+  return this._isResolved;
 };
 
 /**
