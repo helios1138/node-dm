@@ -116,7 +116,7 @@ var config = {
 }
 
 /* full method */
-dm.provide('value', 'config', config);
+dm.provide('config', 'value', config);
 /* shorthand method: */
 dm.value('pi', 3.14);
 
@@ -143,7 +143,7 @@ function UserCtrl(config, db){
 UserCtrl.$depends = ['config', 'db'];
 
 /* full method */
-dm.provide('class', 'userCtrl', UserCtrl);
+dm.provide('userCtrl', 'class', UserCtrl);
 
 /* wokrs with ES6 too */
 class FileParser{
@@ -169,7 +169,7 @@ function createObject(){
 }
 
 /* full method */
-dm.provide('factory', 'someObject', createObject);
+dm.provide('someObject', 'factory', createObject);
 
 /* a function can also return a promise */
 function connectToDb(config){
