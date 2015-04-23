@@ -204,4 +204,4 @@ Dependency.prototype._checkForCircularDependencies = function () {
   return checkThirdLevelDependencies(this, this);
 };
 
-module.exports = { Dependency: Dependency };
+module.exports = Dependency;

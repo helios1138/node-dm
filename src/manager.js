@@ -143,4 +143,4 @@ Manager.prototype.object = function (dependencyNames) {
   return obj;
 };
 
-module.exports = { Manager: Manager };
+module.exports = Manager;

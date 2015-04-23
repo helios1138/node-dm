@@ -3,8 +3,8 @@
 require('should');
 global.Promise = global.Promise || require('promise');
 
-var Manager   = require('../src/manager').Manager,
-    Container = require('../src/container').Container;
+var Manager   = require('../src/manager'),
+    Container = require('../src/container');
 
 describe('manager', function () {
   var dm;

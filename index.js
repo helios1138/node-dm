@@ -1,5 +1,5 @@
-var Manager = require('./src/manager').Manager;
-var Container = require('./src/container').Container;
+var Manager = require('./src/manager');
+var Container = require('./src/container');
 var dm = new Manager(new Container());
 
 module.exports = dm;

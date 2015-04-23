@@ -4,7 +4,7 @@ require('should');
 
 global.Promise = global.Promise || require('promise');
 
-var Container = require('../src/container').Container;
+var Container = require('../src/container');
 
 describe('container', function () {
   var container;

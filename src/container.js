@@ -2,7 +2,7 @@
 
 global.Promise = global.Promise || require('promise');
 
-var Dependency = require('./dependency').Dependency;
+var Dependency = require('./dependency');
 
 /**
  * @class
@@ -84,4 +84,4 @@ Container.prototype._resolveAsObject = function (dependencyNames) {
     }.bind(this));
 };
 
-module.exports = { Container: Container };
+module.exports = Container;
