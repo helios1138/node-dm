@@ -44,6 +44,52 @@ describe('manager', function () {
       ]);
     });
 
+    it('shorthand methods can also define dependencies directly', function () {
+      var called    = [],
+          container = {
+            get: function (name) {
+              return {
+                provide: function (type, value, dependencyNames) {
+                  called.push({
+                    name:            name,
+                    type:            type,
+                    value:           value,
+                    dependencyNames: dependencyNames
+                  });
+                }
+              };
+            }
+          };
+
+      dm = new Manager(container);
+
+      function SomeClass1() {}
+
+      SomeClass1.$depends = ['a', 'b'];
+
+      function SomeClass2() {}
+
+      dm.class('some1', SomeClass1);
+      dm.class('some2', SomeClass2, ['c', 'd']);
+
+      function getOther1() {}
+
+      getOther1.$depends = ['a', 'b'];
+
+      function getOther2() {}
+
+      dm.factory('other1', getOther1);
+      dm.factory('other2', getOther2, ['c', 'd']);
+
+      called.should.have.length(4);
+      called.should.eql([
+        { name: 'some1', type: 'class', value: SomeClass1, dependencyNames: ['a', 'b'] },
+        { name: 'some2', type: 'class', value: SomeClass2, dependencyNames: ['c', 'd'] },
+        { name: 'other1', type: 'factory', value: getOther1, dependencyNames: ['a', 'b'] },
+        { name: 'other2', type: 'factory', value: getOther2, dependencyNames: ['c', 'd'] }
+      ]);
+    });
+
     it('provides shorthand methods for resolving the root dependency', function () {
       var called    = [],
           value     = { is: 'value' },
