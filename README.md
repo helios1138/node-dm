@@ -131,14 +131,17 @@ dm.provide('config', 'value', config);
 dm.value('pi', 3.14);
 
 /* promises will also work */
-var timeIn10Sec = new Promise(function(resolve){
+var timeIn2Sec = new Promise(function(resolve){
 	setTimeout(function(){
 		resolve(new Date());
-	}, 1000);
+	}, 2000);
 });
 
-/* whoever depends on this, will receive it once the promise will be resolved */
-dm.value('timeIn10Sec', timeIn10Sec);
+/* 
+ * whoever depends on this, will receive it 
+ * once the promise will be resolved 
+ */
+dm.value('timeIn2Sec', timeIn2Sec);
 ```
 
 * as classes
