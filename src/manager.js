@@ -118,4 +118,18 @@ Manager.prototype.run = function (dependencyName) {
   return this.resolve([dependencyName]);
 };
 
+/**
+ * @param {...string} keys
+ * @returns {object}
+ */
+Manager.prototype.object = function (keys) {
+  var obj = {};
+
+  Array.prototype.slice.call(arguments).forEach(function (key) {
+    obj[key] = true;
+  });
+
+  return obj;
+};
+
 module.exports = { Manager: Manager };

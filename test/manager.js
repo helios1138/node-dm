@@ -66,6 +66,15 @@ describe('manager', function () {
           result.should.equal(value);
         });
     });
+
+    it('provides shorthand method for requesting dependencies as objects', function () {
+      dm.object('some', 'other', 'another')
+        .should.have.properties({
+          some:    true,
+          other:   true,
+          another: true
+        });
+    });
   });
 
   describe('errors and messages', function () {

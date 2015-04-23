@@ -212,6 +212,11 @@ Parser.$depends = {
 	router: true
 };
 
+/*
+or you can use shorthand like this: 
+Parser.$depends = dm.object('config', 'db', 'router');
+*/
+
 dm.class('parser', Parser);
 ```
 
