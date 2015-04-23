@@ -78,7 +78,41 @@ Manager.prototype.resolve = function (dependencyNames) {
  * @returns {Promise}
  */
 Manager.prototype.run = function (dependencyName) {
-  return this.resolve([dependencyName]);
+  return new Promise(function (resolve, reject) {
+    this.resolve([dependencyName]).then(resolve, reject);
+
+    if (this._config.dependencyTimeout) {
+      setTimeout(
+        function () {
+          var unresolvedNames = this._container
+            .getAll()
+            .filter(function (dependency) { return !dependency.isResolved(); })
+            .map(function (dependency) { return dependency.getName(); });
+
+          if (unresolvedNames.length === 1) {
+            reject(new Error(
+              'Dependency "' +
+              unresolvedNames[0] +
+              '" was not resolved in ' +
+              this._config.dependencyTimeout +
+              'ms'
+            ));
+          }
+          else if (unresolvedNames.length > 1) {
+            unresolvedNames = unresolvedNames.map(function (name) { return '"' + name + '"'; });
+            reject(new Error(
+              'Dependencies "' +
+              unresolvedNames.join(', ') +
+              '" were not resolved in ' +
+              this._config.dependencyTimeout +
+              'ms'
+            ));
+          }
+        }.bind(this),
+        this._config.dependencyTimeout
+      );
+    }
+  }.bind(this));
 };
 
 module.exports = { Manager: Manager };

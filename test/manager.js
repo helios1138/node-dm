@@ -116,8 +116,7 @@ describe('manager', function () {
 
       return dm.run('app')
         .catch(function (err) {
-          console.log(err);
-          err.should.be.instanceof(Error).and.have.property('message', 'Dependency "some" was not resolved in 100ms');
+          err.should.be.instanceof(Error).and.have.property('message', 'Dependency "fs" was not resolved in 100ms');
           called.catch = true;
         })
         .then(function () {

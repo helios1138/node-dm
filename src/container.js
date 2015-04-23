@@ -31,7 +31,15 @@ Container.prototype.get = function (name) {
  * @returns {Dependency[]}
  */
 Container.prototype.getAll = function () {
-  return Object.values(this._dependencies);
+  var values = [];
+
+  for (var key in this._dependencies) {
+    if (this._dependencies.hasOwnProperty(key)) {
+      values.push(this._dependencies[key]);
+    }
+  }
+
+  return values;
 };
 
 /**
