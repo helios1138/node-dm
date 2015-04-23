@@ -1,6 +1,7 @@
 'use strict';
 
 require('should');
+global.Promise = global.Promise || require('promise');
 
 var Manager   = require('../src/manager').Manager,
     Container = require('../src/container').Container;
@@ -45,11 +46,11 @@ describe('manager', function () {
 
     it('provides shorthand methods for resolving the root dependency', function () {
       var called    = [],
-          promise   = {},
+          value     = { is: 'value' },
           container = {
             resolve: function (dependencies) {
               called.push(dependencies);
-              return promise;
+              return Promise.resolve(value);
             }
           };
 
@@ -59,7 +60,11 @@ describe('manager', function () {
 
       called.should.have.length(1);
       called.should.eql([['app']]);
-      result.should.equal(promise);
+
+      return result
+        .then(function (result) {
+          result.should.equal(value);
+        });
     });
   });
 
