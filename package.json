@@ -1,6 +1,6 @@
 {
   "name": "node-dm",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Asynchronous Dependency Injection Manager for Node.JS",
   "main": "./src/dependency-manager.js",
   "scripts": {
