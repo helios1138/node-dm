@@ -70,18 +70,13 @@ Manager.prototype.value = function (name, value) {
  * @returns {Promise}
  */
 Manager.prototype.resolve = function (dependencyNames) {
-  return this._container.resolve(dependencyNames);
-};
+  if (!this._config.dependencyTimeout) {
+    return this._container.resolve(dependencyNames);
+  }
+  else {
+    return new Promise(function (resolve, reject) {
+      this._container.resolve(dependencyNames).then(resolve, reject);
 
-/**
- * @param {string} dependencyName
- * @returns {Promise}
- */
-Manager.prototype.run = function (dependencyName) {
-  return new Promise(function (resolve, reject) {
-    this.resolve([dependencyName]).then(resolve, reject);
-
-    if (this._config.dependencyTimeout) {
       setTimeout(
         function () {
           var unresolvedNames = this._container
@@ -111,8 +106,16 @@ Manager.prototype.run = function (dependencyName) {
         }.bind(this),
         this._config.dependencyTimeout
       );
-    }
-  }.bind(this));
+    }.bind(this));
+  }
+};
+
+/**
+ * @param {string} dependencyName
+ * @returns {Promise}
+ */
+Manager.prototype.run = function (dependencyName) {
+  return this.resolve([dependencyName]);
 };
 
 module.exports = { Manager: Manager };
