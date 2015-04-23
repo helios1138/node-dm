@@ -28,30 +28,41 @@ Manager.prototype.config = function (config) {
  * @param {string} name
  * @param {string} type
  * @param {*} value
+ * @param {string[]} dependencyNames
  * @returns {Manager}
  */
-Manager.prototype.provide = function (name, type, value) {
-  this._container.get(name).provide(type, value);
+Manager.prototype.provide = function (name, type, value, dependencyNames) {
+  this._container.get(name).provide(type, value, dependencyNames);
   return this;
 };
 
 /**
  * @param {string} name
  * @param {Function} constructor
+ * @param {string[]} [dependencyNames]
  * @returns {Manager}
  */
-Manager.prototype.class = function (name, constructor) {
-  this.provide(name, 'class', constructor);
+Manager.prototype.class = function (name, constructor, dependencyNames) {
+  if (dependencyNames === undefined) {
+    dependencyNames = constructor.$depends;
+  }
+
+  this.provide(name, 'class', constructor, dependencyNames);
   return this;
 };
 
 /**
  * @param {string} name
  * @param {Function} factory
+ * @param {string[]} [dependencyNames]
  * @returns {Manager}
  */
-Manager.prototype.factory = function (name, factory) {
-  this.provide(name, 'factory', factory);
+Manager.prototype.factory = function (name, factory, dependencyNames) {
+  if (dependencyNames === undefined) {
+    dependencyNames = factory.$depends;
+  }
+
+  this.provide(name, 'factory', factory, dependencyNames);
   return this;
 };
 
@@ -61,7 +72,7 @@ Manager.prototype.factory = function (name, factory) {
  * @returns {Manager}
  */
 Manager.prototype.value = function (name, value) {
-  this.provide(name, 'value', value);
+  this.provide(name, 'value', value, []);
   return this;
 };
 
@@ -119,10 +130,10 @@ Manager.prototype.run = function (dependencyName) {
 };
 
 /**
- * @param {...string} keys
+ * @param {...string} dependencyNames
  * @returns {object}
  */
-Manager.prototype.object = function (keys) {
+Manager.prototype.object = function (dependencyNames) {
   var obj = {};
 
   Array.prototype.slice.call(arguments).forEach(function (key) {

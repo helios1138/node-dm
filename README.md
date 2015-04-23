@@ -143,7 +143,7 @@ function UserCtrl(config, db){
 UserCtrl.$depends = ['config', 'db'];
 
 /* full method */
-dm.provide('userCtrl', 'class', UserCtrl);
+dm.provide('userCtrl', 'class', UserCtrl, UserCtrl.$depends);
 
 /* wokrs with ES6 too */
 class FileParser{

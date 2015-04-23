@@ -24,8 +24,9 @@ function Dependency(container, name) {
 /**
  * @param {string} type
  * @param {*|{ $depends: Array|Object }} value
+ * @param {string[]} dependencyNames
  */
-Dependency.prototype.provide = function (type, value) {
+Dependency.prototype.provide = function (type, value, dependencyNames) {
   if (this._isResolved) {
     throw new Error('Dependency "' + this._name + '" was already provided');
   }
@@ -34,8 +35,8 @@ Dependency.prototype.provide = function (type, value) {
 
   this._type = type;
 
-  if (type !== 'value' && value.$depends) {
-    this._depends = value.$depends;
+  if (type !== 'value' && dependencyNames) {
+    this._depends = dependencyNames;
   }
 
   this._resolve(value);

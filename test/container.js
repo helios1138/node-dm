@@ -90,7 +90,7 @@ describe('container', function () {
 
           Other.$depends = ['some', 'another'];
 
-          container.get('other').provide('class', Other);
+          container.get('other').provide('class', Other, Other.$depends);
 
           return container.resolve(['other', 'some'])
             .then(function (result) {
@@ -140,7 +140,7 @@ describe('container', function () {
 
           Other.$depends = { some: true, another: true };
 
-          container.get('other').provide('class', Other);
+          container.get('other').provide('class', Other, Other.$depends);
 
           return container.resolve(['other', 'some'])
             .then(function (result) {
@@ -225,7 +225,7 @@ describe('container', function () {
 
           getOther.$depends = ['some', 'another'];
 
-          container.get('other').provide('factory', getOther);
+          container.get('other').provide('factory', getOther, getOther.$depends);
 
           return container.resolve(['other', 'some'])
             .then(function (result) {
@@ -277,7 +277,7 @@ describe('container', function () {
 
           getOther.$depends = { some: true, another: true };
 
-          container.get('other').provide('factory', getOther);
+          container.get('other').provide('factory', getOther, getOther.$depends);
 
           return container.resolve(['other', 'some'])
             .then(function (result) {
@@ -465,33 +465,25 @@ describe('container', function () {
         called.Level2Dep1 = true;
       }
 
-      Level2Dep1.$depends = ['level3Dep1', 'level3Dep2'];
-
-      container.get('level2Dep1').provide('class', Level2Dep1);
+      container.get('level2Dep1').provide('class', Level2Dep1, ['level3Dep1', 'level3Dep2']);
 
       function Level2Dep2() {
         called.Level2Dep2 = true;
       }
 
-      Level2Dep2.$depends = ['level3Dep3'];
-
-      container.get('level2Dep2').provide('class', Level2Dep2);
+      container.get('level2Dep2').provide('class', Level2Dep2, ['level3Dep3']);
 
       function Level1Dep1() {
         called.Level1Dep1 = true;
       }
 
-      Level1Dep1.$depends = ['level2Dep1', 'level2Dep2'];
-
-      container.get('level1Dep1').provide('class', Level1Dep1);
+      container.get('level1Dep1').provide('class', Level1Dep1, ['level2Dep1', 'level2Dep2']);
 
       function Level1Dep2() {
         called.Level1Dep2 = true;
       }
 
-      Level1Dep2.$depends = ['level2Dep2'];
-
-      container.get('level1Dep2').provide('class', Level1Dep2);
+      container.get('level1Dep2').provide('class', Level1Dep2, ['level2Dep2']);
 
       return Promise.all([
         container.resolve(['level1Dep1'])
@@ -544,7 +536,7 @@ describe('container', function () {
       getB.$depends = { a: true };
 
       container.get('a').provide('factory', getA);
-      container.get('b').provide('factory', getB);
+      container.get('b').provide('factory', getB, getB.$depends);
 
       return container.resolve(['b'])
         .then(function () {
@@ -576,7 +568,7 @@ describe('container', function () {
 
         One.$depends = ['one'];
 
-        container.get('one').provide('class', One);
+        container.get('one').provide('class', One, One.$depends);
 
         return container.resolve(['one'])
           .catch(function (err) {
@@ -618,10 +610,10 @@ describe('container', function () {
 
         Four.$depends = ['one'];
 
-        container.get('one').provide('class', One);
-        container.get('two').provide('class', Two);
-        container.get('three').provide('class', Three);
-        container.get('four').provide('class', Four);
+        container.get('one').provide('class', One, One.$depends);
+        container.get('two').provide('class', Two, Two.$depends);
+        container.get('three').provide('class', Three, Three.$depends);
+        container.get('four').provide('class', Four, Four.$depends);
 
         return container.resolve(['one'])
           .catch(function (err) {
@@ -654,8 +646,8 @@ describe('container', function () {
 
         Two.$depends = ['one'];
 
-        container.get('one').provide('class', One);
-        container.get('two').provide('class', Two);
+        container.get('one').provide('class', One, One.$depends);
+        container.get('two').provide('class', Two, Two.$depends);
 
         return container.resolve(['one'])
           .catch(function (err) {
@@ -700,10 +692,10 @@ describe('container', function () {
 
         Four.$depends = ['two'];
 
-        container.get('one').provide('class', One);
-        container.get('two').provide('class', Two);
-        container.get('three').provide('class', Three);
-        container.get('four').provide('class', Four);
+        container.get('one').provide('class', One, One.$depends);
+        container.get('two').provide('class', Two, Two.$depends);
+        container.get('three').provide('class', Three, Three.$depends);
+        container.get('four').provide('class', Four, Four.$depends);
 
         return container.resolve(['one'])
           .catch(function (err) {
@@ -748,10 +740,10 @@ describe('container', function () {
 
         Four.$depends = ['three'];
 
-        container.get('one').provide('class', One);
-        container.get('two').provide('class', Two);
-        container.get('three').provide('class', Three);
-        container.get('four').provide('class', Four);
+        container.get('one').provide('class', One, One.$depends);
+        container.get('two').provide('class', Two, Two.$depends);
+        container.get('three').provide('class', Three, Three.$depends);
+        container.get('four').provide('class', Four, Four.$depends);
 
         return container.resolve(['one'])
           .catch(function (err) {
