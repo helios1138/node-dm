@@ -44,9 +44,15 @@ App.$depends = ['db', 'config'];
 /* provide your resource as a class */
 dm.class('app', App);
 
-/* you can also specify dependencies here directly without $depends: dm.class('app', App, ['db', 'config']); */
+/* 
+ * you can also specify dependencies here directly without $depends: 
+ * dm.class('app', App, ['db', 'config']); 
+ */
 
-/* full provide method looks like this ($depends cannot be used here): dm.provide('app', 'class', App, ['db', 'config']); */
+/* 
+ * full provide method looks like this ($depends cannot be used here):
+ * dm.provide('app', 'class', App, ['db', 'config']); 
+ */
 
 /* 
  * bootstrap dependency tree - calling dm.run() is needed to instatiate
@@ -217,9 +223,9 @@ Parser.$depends = {
 };
 
 /*
-or you can use shorthand like this: 
-Parser.$depends = dm.object('config', 'db', 'router');
-*/
+ * or you can use shorthand like this: 
+ * Parser.$depends = dm.object('config', 'db', 'router');
+ */
 
 dm.class('parser', Parser);
 ```
