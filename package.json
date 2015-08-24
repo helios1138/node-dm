@@ -30,10 +30,10 @@
   },
   "homepage": "https://github.com/helios1138/node-dm",
   "dependencies": {
-    "promise": "^6.1.0"
+    "promise": "^7.0.4"
   },
   "devDependencies": {
     "mocha": "^2.2.1",
-    "should": "^5.2.0"
+    "should": "^7.0.4"
   }
 }
