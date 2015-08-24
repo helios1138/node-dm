@@ -138,13 +138,9 @@ Dependency.prototype._instantiate = function (source, dependencies) {
 Dependency.prototype._instantiateFromClass = function (constructor, dependencies) {
   var dependencyNames = this._depends;
 
-  function F() {
-    return Array.isArray(dependencyNames) ?
-      constructor.apply(this, dependencies) :
-      constructor.call(this, dependencies);
-  }
-
-  F.prototype = constructor.prototype;
+  var F = Array.isArray(dependencyNames) ?
+    constructor.bind.apply(constructor, [null].concat(dependencies)) :
+    constructor.bind(null, dependencies);
 
   return new F();
 };
