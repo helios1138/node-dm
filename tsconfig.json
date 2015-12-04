@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "noImplicitAny": true
+  },
+  "files": [
+    "./typings/tsd.d.ts",
+    "./src/container.ts",
+    "./src/manager.ts",
+    "./src/dependency.ts"
+  ]
+}

@@ -1,10 +1,11 @@
 {
   "name": "node-dm",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "description": "Asynchronous Dependency Injection Manager for Node.JS",
   "main": "./index.js",
   "scripts": {
-    "test": "mocha --require should ./test"
+    "test": "mocha --require should ./test",
+    "build": "rm -rf ./dist && ./node_modules/.bin/tsc"
   },
   "repository": {
     "type": "git",
@@ -29,11 +30,13 @@
     "url": "https://github.com/helios1138/node-dm/issues"
   },
   "homepage": "https://github.com/helios1138/node-dm",
-  "dependencies": {
-    "promise": "^7.0.4"
-  },
   "devDependencies": {
-    "mocha": "^2.2.1",
-    "should": "^7.0.4"
+    "mocha": "^2.3.4",
+    "should": "^7.1.1",
+    "tslint": "^3.1.1",
+    "typescript": "^1.7.3"
+  },
+  "dependencies": {
+    "bluebird": "^3.0.6"
   }
 }
