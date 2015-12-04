@@ -2,13 +2,17 @@
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
-    "outDir": "./dist",
+    "outDir": "dist",
     "noImplicitAny": true
   },
   "files": [
-    "./typings/tsd.d.ts",
-    "./src/container.ts",
-    "./src/manager.ts",
-    "./src/dependency.ts"
+    "typings/tsd.d.ts",
+    "src/i-instance.ts",
+    "src/i-source.ts",
+    "src/container.ts",
+    "src/manager.ts",
+    "src/dependency.ts",
+    "src/factory-dependency.ts",
+    "src/constructor-dependency.ts"
   ]
 }

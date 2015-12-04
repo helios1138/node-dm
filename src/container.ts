@@ -1,16 +1,27 @@
+import {Dependency} from './dependency';
+import {ISource} from './i-source';
+
 export class Container {
-  private instances: Promise<any>[] = [];
-  private classes: Function[];
+  protected dependencies: Dependency[] = [];
 
-  constructor() {
-    console.log(this.instances);
+  public registerDependency(dependency: Dependency): void {
+    this.dependencies.push(dependency);
   }
 
-  public registerClass(constructor: Function): void {
-    this.classes.push(constructor);
+  public getDependencyInstance(source: ISource): any {
+    return this.getDependency(source).instance;
   }
 
-  public getInstances(classes: Function[]): any[] {
-    return [];
+  protected getDependency(source: ISource): Dependency {
+    let dependency: Dependency = null;
+
+    for (let i: number = 0; i < this.dependencies.length; i++) {
+      if (this.dependencies[i].isSource(source)) {
+        dependency = this.dependencies[i];
+        break;
+      }
+    }
+
+    return dependency;
   }
 }
